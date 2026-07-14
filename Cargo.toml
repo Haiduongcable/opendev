@@ -116,3 +116,5 @@ opendev-hooks = { version = "0.1.6", path = "crates/opendev-hooks" }
 opendev-plugins = { version = "0.1.6", path = "crates/opendev-plugins" }
 opendev-sandbox = { version = "0.1.6", path = "crates/opendev-sandbox" }
 url = "2"
+base64 = "0.22"
+sha2 = "0.10"
