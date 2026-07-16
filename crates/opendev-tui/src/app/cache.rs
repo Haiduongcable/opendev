@@ -148,7 +148,8 @@ impl App {
                     return self.state.per_message_line_counts[idx];
                 }
                 // Fallback estimate for never-rendered messages
-                let content = strip_system_reminders(&msg.content);
+                let content_cow = strip_system_reminders(&msg.content);
+                let content = content_cow.as_ref();
                 let text_lines = if content.is_empty() {
                     0
                 } else {
@@ -306,7 +307,8 @@ impl App {
         use ratatui::style::{Modifier, Style};
         use ratatui::text::{Line, Span};
 
-        let content = strip_system_reminders(&msg.content);
+        let content_cow = strip_system_reminders(&msg.content);
+        let content = content_cow.as_ref();
         if content.is_empty() && msg.tool_call.is_none() {
             return;
         }

@@ -289,7 +289,8 @@ impl<'a> ConversationWidget<'a> {
 
         for (msg_idx, msg) in self.messages.iter().enumerate() {
             // Filter system reminders from displayed content
-            let content = strip_system_reminders(&msg.content);
+            let content_cow = strip_system_reminders(&msg.content);
+            let content = content_cow.as_ref();
 
             // Skip empty messages after filtering
             if content.is_empty() && msg.tool_call.is_none() {

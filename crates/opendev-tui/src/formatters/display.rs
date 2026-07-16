@@ -7,6 +7,7 @@ use ratatui::{
     style::Style,
     text::{Line, Span},
 };
+use std::borrow::Cow;
 
 use super::style_tokens::{self, RESULT_PREFIX};
 
@@ -14,7 +15,28 @@ use super::style_tokens::{self, RESULT_PREFIX};
 ///
 /// System reminders are injected into messages for the LLM but should not
 /// be shown to the user in the conversation view.
-pub fn strip_system_reminders(text: &str) -> String {
+pub fn strip_system_reminders(text: &str) -> Cow<'_, str> {
+    if !text.contains("<system-reminder>") {
+        if !text.contains("\n\n") {
+            return Cow::Borrowed(text.trim());
+        }
+
+        let mut collapsed = String::with_capacity(text.len());
+        let mut last_was_newline = false;
+        for c in text.chars() {
+            if c == '\n' {
+                if !last_was_newline {
+                    collapsed.push(c);
+                    last_was_newline = true;
+                }
+            } else {
+                collapsed.push(c);
+                last_was_newline = false;
+            }
+        }
+        return Cow::Owned(collapsed.trim().to_string());
+    }
+
     let mut result = String::with_capacity(text.len());
     let mut remaining = text;
 
@@ -39,12 +61,25 @@ pub fn strip_system_reminders(text: &str) -> String {
     }
 
     // Collapse runs of 2+ newlines (left over from removal) into a single newline
-    let mut cleaned = result.clone();
-    while cleaned.contains("\n\n") {
-        cleaned = cleaned.replace("\n\n", "\n");
+    if !result.contains("\n\n") {
+        return Cow::Owned(result.trim().to_string());
     }
 
-    cleaned.trim().to_string()
+    let mut collapsed = String::with_capacity(result.len());
+    let mut last_was_newline = false;
+    for c in result.chars() {
+        if c == '\n' {
+            if !last_was_newline {
+                collapsed.push(c);
+                last_was_newline = true;
+            }
+        } else {
+            collapsed.push(c);
+            last_was_newline = false;
+        }
+    }
+
+    Cow::Owned(collapsed.trim().to_string())
 }
 
 /// Format an error message for display.
