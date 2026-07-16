@@ -300,7 +300,7 @@ impl<'a> ConversationWidget<'a> {
             match msg.role {
                 DisplayRole::Assistant => {
                     // Use markdown renderer for assistant messages
-                    let md_lines = MarkdownRenderer::render(&content);
+                    let md_lines = MarkdownRenderer::render(content);
                     let mut leading_consumed = false;
                     for md_line in md_lines.into_iter() {
                         // Check if this line has non-empty content
@@ -351,7 +351,7 @@ impl<'a> ConversationWidget<'a> {
                 | DisplayRole::SlashCommand
                 | DisplayRole::CommandResult => {
                     let rs = msg.role.style().unwrap();
-                    Self::render_simple_role(&content, &rs, &mut lines);
+                    Self::render_simple_role(content, &rs, &mut lines);
                 }
                 DisplayRole::Reasoning => {
                     let thinking_style = Style::default().fg(style_tokens::THINKING_BG);
@@ -430,7 +430,7 @@ impl<'a> ConversationWidget<'a> {
                     } else {
                         // Expanded: full markdown rendering
                         let md_lines =
-                            MarkdownRenderer::render_muted(&content, style_tokens::THINKING_BG);
+                            MarkdownRenderer::render_muted(content, style_tokens::THINKING_BG);
                         let mut leading_consumed = false;
                         for md_line in md_lines.into_iter() {
                             let line_text: String = md_line
@@ -458,7 +458,7 @@ impl<'a> ConversationWidget<'a> {
                     }
                 }
                 DisplayRole::Plan => {
-                    Self::render_plan_panel(&content, &mut lines);
+                    Self::render_plan_panel(content, &mut lines);
                 }
             }
 

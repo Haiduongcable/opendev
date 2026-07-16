@@ -317,11 +317,11 @@ impl App {
 
         match msg.role {
             DisplayRole::Assistant => {
-                let cache_key = markdown_cache_key(&msg.role, &content);
+                let cache_key = markdown_cache_key(&msg.role, content);
                 let md_lines = if let Some(cached) = markdown_cache.get(&cache_key) {
                     cached.clone()
                 } else {
-                    let rendered = MarkdownRenderer::render(&content);
+                    let rendered = MarkdownRenderer::render(content);
                     markdown_cache.insert(cache_key, rendered.clone());
                     rendered
                 };
@@ -452,12 +452,12 @@ impl App {
                     }
                 } else {
                     // Expanded: full markdown rendering (unchanged)
-                    let cache_key = markdown_cache_key(&msg.role, &content);
+                    let cache_key = markdown_cache_key(&msg.role, content);
                     let md_lines = if let Some(cached) = markdown_cache.get(&cache_key) {
                         cached.clone()
                     } else {
                         let rendered =
-                            MarkdownRenderer::render_muted(&content, style_tokens::THINKING_BG);
+                            MarkdownRenderer::render_muted(content, style_tokens::THINKING_BG);
                         markdown_cache.insert(cache_key, rendered.clone());
                         rendered
                     };
@@ -541,11 +541,11 @@ impl App {
                 ]));
 
                 // Markdown content with left border prefix
-                let cache_key = markdown_cache_key(&msg.role, &content);
+                let cache_key = markdown_cache_key(&msg.role, content);
                 let md_lines = if let Some(cached) = markdown_cache.get(&cache_key) {
                     cached.clone()
                 } else {
-                    let rendered = MarkdownRenderer::render(&content);
+                    let rendered = MarkdownRenderer::render(content);
                     markdown_cache.insert(cache_key, rendered.clone());
                     rendered
                 };
