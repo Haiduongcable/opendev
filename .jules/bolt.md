@@ -90,3 +90,6 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
+## 2024-05-19 - Efficient String Manipulation in Display Formatting
+**Learning:** The previous implementation of `strip_system_reminders` utilized a `replace` inside a `while` loop to collapse multiple newlines, leading to O(N²) string allocations and excessive memory usage. Furthermore, it didn't utilize `Cow` to avoid allocations altogether when processing standard text.
+**Action:** When performing complex text replacements in frequent operations (like rendering every message tick), prefer a single-pass O(N) iteration, and return `Cow<'_, str>` to allow a zero-allocation fast path for strings that do not require modification.
