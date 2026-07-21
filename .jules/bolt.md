@@ -90,3 +90,6 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
+## 2024-06-25 - Prevent Store-Induced Re-renders and Scroll Thrashing
+**Learning:** Returning inline arrays `[]` from Zustand selectors causes referential inequality, leading to unnecessary re-renders of list components every time *any* state in the store changes. Furthermore, synchronous scroll handlers on large lists can cause layout thrashing on the main thread.
+**Action:** Always return stable references (like an external `EMPTY_ARRAY`) from store selectors when falling back to empty collections. Use `requestAnimationFrame` for high-frequency DOM events like `onScroll`.

@@ -1,12 +1,18 @@
 import { useState } from 'react';
 import { useChatStore } from '../../stores/chat';
 
+// ⚡ Bolt Performance Optimization:
+// Use a stable reference for empty fallback arrays to prevent Zustand selectors
+// from returning a new array instance on every state change, which would trigger
+// unnecessary deep re-renders of the QueueBar component.
+const EMPTY_ARRAY: string[] = [];
+
 export function QueueBar() {
   const [expanded, setExpanded] = useState(false);
 
   const queuedMessages = useChatStore(state => {
     const sid = state.currentSessionId;
-    return sid ? state.sessionStates[sid]?.queuedMessages ?? [] : [];
+    return sid ? state.sessionStates[sid]?.queuedMessages ?? EMPTY_ARRAY : EMPTY_ARRAY;
   });
 
   if (queuedMessages.length === 0) return null;
