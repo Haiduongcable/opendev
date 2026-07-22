@@ -90,3 +90,6 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
+## 2026-07-22 - Static Map Hoisting
+**Learning:** Found static mapping objects declared inside functions called during the render cycle (`getToolDisplayParts` and `summarizeToolArgs` in `ToolCallMessage.tsx`). This pattern repeatedly allocates memory for the same object literals unnecessarily.
+**Action:** Always check frequently called utility functions inside React components for static objects or arrays that can be hoisted to module scope.

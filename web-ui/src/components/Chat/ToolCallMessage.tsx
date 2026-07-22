@@ -14,62 +14,65 @@ const SUCCESS_PATTERN = /read|created|updated|changes|packages installed|complet
 const ERROR_PATTERN = /error|failed|interrupted|exit code/i;
 const TOOL_MARKER_ERROR_PATTERN = /::tool_error::|::interrupted::/;
 
+// ⚡ Bolt Performance Optimization:
+// Hoisted large constant object out of the function to prevent object allocation
+// on every single function call and React render.
+const TOOL_MAP: Record<string, { verb: string; label: string }> = {
+  'read_file': { verb: 'Read', label: 'file' },
+  'read_pdf': { verb: 'Read', label: 'pdf' },
+  'write_file': { verb: 'Write', label: 'file' },
+  'edit_file': { verb: 'Edit', label: 'file' },
+  'delete_file': { verb: 'Delete', label: 'file' },
+  'list_files': { verb: 'List', label: 'files' },
+  'list_directory': { verb: 'List', label: 'directory' },
+  'search_code': { verb: 'Search', label: 'code' },
+  'search': { verb: 'Search', label: 'project' },
+  'run_command': { verb: 'Bash', label: 'command' },
+  'bash_execute': { verb: 'Bash', label: 'command' },
+  'fetch_url': { verb: 'Fetch', label: 'url' },
+  'open_browser': { verb: 'Open', label: 'browser' },
+  'capture_screenshot': { verb: 'Capture', label: 'screenshot' },
+  'capture_web_screenshot': { verb: 'Capture', label: 'page' },
+  'analyze_image': { verb: 'Analyze', label: 'image' },
+  'git_commit': { verb: 'Commit', label: 'changes' },
+  'present_plan': { verb: 'Present', label: 'plan' },
+  'spawn_subagent': { verb: 'Spawn', label: 'agent' },
+  'task_complete': { verb: 'Complete', label: 'task' },
+  'invoke_skill': { verb: 'Invoke', label: 'skill' },
+  'get_process_output': { verb: 'Get Output', label: 'process' },
+  'list_processes': { verb: 'List', label: 'processes' },
+  'kill_process': { verb: 'Kill', label: 'process' },
+  'write_todos': { verb: 'Create', label: 'todos' },
+  'update_todo': { verb: 'Update', label: 'todo' },
+  'complete_todo': { verb: 'Complete', label: 'todo' },
+  'list_todos': { verb: 'List', label: 'todos' },
+  'clear_todos': { verb: 'Clear', label: 'todos' },
+  'find_symbol': { verb: 'Find Symbol', label: 'symbol' },
+  'find_referencing_symbols': { verb: 'Find References', label: 'symbol' },
+  'insert_before_symbol': { verb: 'Insert Before', label: 'symbol' },
+  'insert_after_symbol': { verb: 'Insert After', label: 'symbol' },
+  'replace_symbol_body': { verb: 'Replace Symbol', label: 'symbol' },
+  'rename_symbol': { verb: 'Rename Symbol', label: 'symbol' },
+  'notebook_edit': { verb: 'Edit', label: 'notebook' },
+  'ask_user': { verb: 'Ask', label: 'user' },
+  'web_search': { verb: 'Search', label: 'web' },
+  'get_subagent_output': { verb: 'Get Output', label: 'subagent' },
+  'search_tools': { verb: 'Search Tools', label: 'MCP' },
+  'apply_patch': { verb: 'Apply', label: 'patch' },
+  'git': { verb: 'Git', label: 'command' },
+  'browser': { verb: 'Browser', label: 'action' },
+  'schedule': { verb: 'Schedule', label: 'task' },
+  'send_message': { verb: 'Send', label: 'message' },
+  'memory_search': { verb: 'Search', label: 'memory' },
+  'memory_write': { verb: 'Write', label: 'memory' },
+  'list_sessions': { verb: 'List', label: 'sessions' },
+  'get_session_history': { verb: 'Get', label: 'session history' },
+  'list_subagents': { verb: 'List', label: 'subagents' },
+  'list_agents': { verb: 'List', label: 'agents' },
+};
+
 // Terminal-style tool display utilities
 function getToolDisplayParts(toolName: string): { verb: string; label: string } {
-  const toolMap: Record<string, { verb: string; label: string }> = {
-    'read_file': { verb: 'Read', label: 'file' },
-    'read_pdf': { verb: 'Read', label: 'pdf' },
-    'write_file': { verb: 'Write', label: 'file' },
-    'edit_file': { verb: 'Edit', label: 'file' },
-    'delete_file': { verb: 'Delete', label: 'file' },
-    'list_files': { verb: 'List', label: 'files' },
-    'list_directory': { verb: 'List', label: 'directory' },
-    'search_code': { verb: 'Search', label: 'code' },
-    'search': { verb: 'Search', label: 'project' },
-    'run_command': { verb: 'Bash', label: 'command' },
-    'bash_execute': { verb: 'Bash', label: 'command' },
-    'fetch_url': { verb: 'Fetch', label: 'url' },
-    'open_browser': { verb: 'Open', label: 'browser' },
-    'capture_screenshot': { verb: 'Capture', label: 'screenshot' },
-    'capture_web_screenshot': { verb: 'Capture', label: 'page' },
-    'analyze_image': { verb: 'Analyze', label: 'image' },
-    'git_commit': { verb: 'Commit', label: 'changes' },
-    'present_plan': { verb: 'Present', label: 'plan' },
-    'spawn_subagent': { verb: 'Spawn', label: 'agent' },
-    'task_complete': { verb: 'Complete', label: 'task' },
-    'invoke_skill': { verb: 'Invoke', label: 'skill' },
-    'get_process_output': { verb: 'Get Output', label: 'process' },
-    'list_processes': { verb: 'List', label: 'processes' },
-    'kill_process': { verb: 'Kill', label: 'process' },
-    'write_todos': { verb: 'Create', label: 'todos' },
-    'update_todo': { verb: 'Update', label: 'todo' },
-    'complete_todo': { verb: 'Complete', label: 'todo' },
-    'list_todos': { verb: 'List', label: 'todos' },
-    'clear_todos': { verb: 'Clear', label: 'todos' },
-    'find_symbol': { verb: 'Find Symbol', label: 'symbol' },
-    'find_referencing_symbols': { verb: 'Find References', label: 'symbol' },
-    'insert_before_symbol': { verb: 'Insert Before', label: 'symbol' },
-    'insert_after_symbol': { verb: 'Insert After', label: 'symbol' },
-    'replace_symbol_body': { verb: 'Replace Symbol', label: 'symbol' },
-    'rename_symbol': { verb: 'Rename Symbol', label: 'symbol' },
-    'notebook_edit': { verb: 'Edit', label: 'notebook' },
-    'ask_user': { verb: 'Ask', label: 'user' },
-    'web_search': { verb: 'Search', label: 'web' },
-    'get_subagent_output': { verb: 'Get Output', label: 'subagent' },
-    'search_tools': { verb: 'Search Tools', label: 'MCP' },
-    'apply_patch': { verb: 'Apply', label: 'patch' },
-    'git': { verb: 'Git', label: 'command' },
-    'browser': { verb: 'Browser', label: 'action' },
-    'schedule': { verb: 'Schedule', label: 'task' },
-    'send_message': { verb: 'Send', label: 'message' },
-    'memory_search': { verb: 'Search', label: 'memory' },
-    'memory_write': { verb: 'Write', label: 'memory' },
-    'list_sessions': { verb: 'List', label: 'sessions' },
-    'get_session_history': { verb: 'Get', label: 'session history' },
-    'list_subagents': { verb: 'List', label: 'subagents' },
-    'list_agents': { verb: 'List', label: 'agents' },
-  };
-
   if (toolName.startsWith('mcp__')) {
     const parts = toolName.split('__');
     if (parts.length >= 3) {
@@ -81,7 +84,7 @@ function getToolDisplayParts(toolName: string): { verb: string; label: string } 
     return { verb: 'MCP', label: 'tool' };
   }
 
-  if (toolMap[toolName]) return toolMap[toolName];
+  if (TOOL_MAP[toolName]) return TOOL_MAP[toolName];
 
   // Smart fallback: parse tool_name tokens into verb + label
   const tokens = toolName.replace(/-/g, '_').split('_').filter(Boolean);
@@ -91,54 +94,57 @@ function getToolDisplayParts(toolName: string): { verb: string; label: string } 
   return { verb, label: tokens.slice(1).join(' ') };
 }
 
+// ⚡ Bolt Performance Optimization:
+// Hoisted large constant array map out of the function to prevent object allocation
+// on every single function call and React render.
+const PRIMARY_KEYS: Record<string, string[]> = {
+  'read_file': ['file_path', 'path'],
+  'read_pdf': ['file_path'],
+  'write_file': ['file_path', 'path'],
+  'edit_file': ['file_path', 'path'],
+  'delete_file': ['file_path', 'path'],
+  'list_files': ['path', 'directory'],
+  'list_directory': ['path', 'directory'],
+  'search_code': ['pattern', 'query'],
+  'search': ['pattern', 'query'],
+  'run_command': ['command'],
+  'bash_execute': ['command'],
+  'fetch_url': ['url'],
+  'open_browser': ['url'],
+  'capture_screenshot': ['target', 'path'],
+  'capture_web_screenshot': ['url'],
+  'analyze_image': ['image_path', 'file_path'],
+  'git_commit': ['message'],
+  'present_plan': ['plan_file_path'],
+  'spawn_subagent': ['subagent_type', 'description'],
+  'task_complete': ['summary'],
+  'invoke_skill': ['skill_name'],
+  'get_process_output': ['pid', 'command'],
+  'kill_process': ['pid'],
+  'write_todos': ['todos'],
+  'update_todo': ['id', 'status'],
+  'complete_todo': ['id'],
+  'find_symbol': ['name', 'symbol'],
+  'find_referencing_symbols': ['name', 'symbol'],
+  'replace_symbol_body': ['name', 'symbol'],
+  'rename_symbol': ['name', 'new_name'],
+  'notebook_edit': ['file_path', 'path'],
+  'ask_user': ['question'],
+  'web_search': ['query'],
+  'get_subagent_output': ['agent_id'],
+  'search_tools': ['query'],
+  'apply_patch': ['patch', 'file_path'],
+  'git': ['command', 'args'],
+  'memory_search': ['query'],
+  'memory_write': ['key', 'content'],
+  'list_sessions': [],
+  'list_subagents': [],
+};
+
 function summarizeToolArgs(toolName: string, toolArgs: any): string {
   if (!toolArgs || typeof toolArgs !== 'object') return '';
 
-  const primaryKeys: Record<string, string[]> = {
-    'read_file': ['file_path', 'path'],
-    'read_pdf': ['file_path'],
-    'write_file': ['file_path', 'path'],
-    'edit_file': ['file_path', 'path'],
-    'delete_file': ['file_path', 'path'],
-    'list_files': ['path', 'directory'],
-    'list_directory': ['path', 'directory'],
-    'search_code': ['pattern', 'query'],
-    'search': ['pattern', 'query'],
-    'run_command': ['command'],
-    'bash_execute': ['command'],
-    'fetch_url': ['url'],
-    'open_browser': ['url'],
-    'capture_screenshot': ['target', 'path'],
-    'capture_web_screenshot': ['url'],
-    'analyze_image': ['image_path', 'file_path'],
-    'git_commit': ['message'],
-    'present_plan': ['plan_file_path'],
-    'spawn_subagent': ['subagent_type', 'description'],
-    'task_complete': ['summary'],
-    'invoke_skill': ['skill_name'],
-    'get_process_output': ['pid', 'command'],
-    'kill_process': ['pid'],
-    'write_todos': ['todos'],
-    'update_todo': ['id', 'status'],
-    'complete_todo': ['id'],
-    'find_symbol': ['name', 'symbol'],
-    'find_referencing_symbols': ['name', 'symbol'],
-    'replace_symbol_body': ['name', 'symbol'],
-    'rename_symbol': ['name', 'new_name'],
-    'notebook_edit': ['file_path', 'path'],
-    'ask_user': ['question'],
-    'web_search': ['query'],
-    'get_subagent_output': ['agent_id'],
-    'search_tools': ['query'],
-    'apply_patch': ['patch', 'file_path'],
-    'git': ['command', 'args'],
-    'memory_search': ['query'],
-    'memory_write': ['key', 'content'],
-    'list_sessions': [],
-    'list_subagents': [],
-  };
-
-  const keys = primaryKeys[toolName] || Object.keys(toolArgs);
+  const keys = PRIMARY_KEYS[toolName] || Object.keys(toolArgs);
   for (const key of keys) {
     if (toolArgs[key] && typeof toolArgs[key] === 'string') {
       return toolArgs[key];
