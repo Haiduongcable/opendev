@@ -4,10 +4,12 @@ import { WelcomeScreen } from './WelcomeScreen';
 import { ProgressIndicator } from './ProgressIndicator';
 import { MessageItem } from './MessageItem';
 
+const EMPTY_MESSAGES: any[] = [];
+
 export function MessageList() {
   const messages = useChatStore(state => {
     const sid = state.currentSessionId;
-    return sid ? state.sessionStates[sid]?.messages ?? [] : [];
+    return sid ? state.sessionStates[sid]?.messages ?? EMPTY_MESSAGES : EMPTY_MESSAGES;
   });
   const isLoading = useChatStore(state => {
     const sid = state.currentSessionId;
@@ -95,13 +97,14 @@ export function MessageList() {
       <div className="max-w-5xl mx-auto py-6 px-4 md:px-8 space-y-4">
         {messages.map((message, index) => {
           const isLastMessage = index === messages.length - 1;
+          const isNewMessage = index >= prevMessageCountRef.current;
+          const staggerDelay = isNewMessage ? (index - prevMessageCountRef.current) * 50 : undefined;
           return (
             <MessageItem
               key={index}
               message={message}
               index={index}
-              isNewMessage={index >= prevMessageCountRef.current}
-              prevMessageCount={prevMessageCountRef.current}
+              staggerDelay={staggerDelay}
               thinkingLevel={thinkingLevel}
               // Only pass isLoading to the very last message to prevent re-rendering all messages when loading toggles
               isLoading={isLastMessage ? isLoading : false}

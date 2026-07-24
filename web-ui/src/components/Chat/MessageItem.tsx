@@ -50,8 +50,7 @@ const MARKDOWN_COMPONENTS = {
 interface MessageItemProps {
   message: any; // Using any for now to simplify, ideally should import ChatMessage from types
   index: number;
-  isNewMessage: boolean;
-  prevMessageCount: number;
+  staggerDelay?: number;
   thinkingLevel: string;
   isLoading: boolean;
   isLastMessage: boolean;
@@ -59,9 +58,7 @@ interface MessageItemProps {
 
 export const MessageItem = React.memo(function MessageItem({
   message,
-  index,
-  isNewMessage,
-  prevMessageCount,
+  staggerDelay,
   thinkingLevel,
   isLoading,
   isLastMessage
@@ -70,8 +67,8 @@ export const MessageItem = React.memo(function MessageItem({
   const depthMargin = message.depth ? `ml-${Math.min(message.depth * 6, 24)}` : '';
 
   // Stagger animation for new messages
-  const staggerStyle = isNewMessage
-    ? { animationDelay: `${(index - prevMessageCount) * 50}ms`, animationFillMode: 'both' as const }
+  const staggerStyle = staggerDelay !== undefined
+    ? { animationDelay: `${staggerDelay}ms`, animationFillMode: 'both' as const }
     : undefined;
 
   // Render tool calls with special component
