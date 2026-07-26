@@ -54,8 +54,8 @@ fn test_count_session_files_mixed() {
     assert_eq!(count_session_files(dir.path()), 2);
 }
 
-#[test]
-fn test_scan_all_memory_files() {
+#[tokio::test]
+async fn test_scan_all_memory_files() {
     let dir = TempDir::new().unwrap();
 
     std::fs::write(
@@ -71,7 +71,7 @@ fn test_scan_all_memory_files() {
     std::fs::write(dir.path().join("MEMORY.md"), "# Index").unwrap();
     std::fs::write(dir.path().join("not-md.txt"), "text").unwrap();
 
-    let files = scan_all_memory_files(dir.path());
+    let files = scan_all_memory_files(dir.path()).await;
     assert_eq!(files.len(), 2);
     assert!(
         files
@@ -85,13 +85,13 @@ fn test_scan_all_memory_files() {
     );
 }
 
-#[test]
-fn test_load_save_meta() {
+#[tokio::test]
+async fn test_load_save_meta() {
     let dir = TempDir::new().unwrap();
     let meta_path = dir.path().join("meta.json");
 
     // Load non-existent file returns default
-    let meta = load_meta(&meta_path);
+    let meta = load_meta_async(&meta_path).await;
     assert!(meta.last_run.is_none());
     assert_eq!(meta.files_processed, 0);
 
@@ -100,14 +100,14 @@ fn test_load_save_meta() {
         last_run: Some("2026-01-01T00:00:00Z".to_string()),
         files_processed: 5,
     };
-    save_meta(&meta_path, &meta);
-    let loaded = load_meta(&meta_path);
+    save_meta_async(&meta_path, &meta).await;
+    let loaded = load_meta_async(&meta_path).await;
     assert_eq!(loaded.last_run.unwrap(), "2026-01-01T00:00:00Z");
     assert_eq!(loaded.files_processed, 5);
 }
 
-#[test]
-fn test_regenerate_index() {
+#[tokio::test]
+async fn test_regenerate_index() {
     let dir = TempDir::new().unwrap();
 
     std::fs::write(
@@ -121,7 +121,7 @@ fn test_regenerate_index() {
     )
     .unwrap();
 
-    regenerate_index(dir.path()).unwrap();
+    regenerate_index(dir.path()).await.unwrap();
 
     let index = std::fs::read_to_string(dir.path().join("MEMORY.md")).unwrap();
     assert!(index.contains("# Memory Index"));
