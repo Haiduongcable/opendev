@@ -95,13 +95,17 @@ pub async fn consolidate(working_dir: &Path) -> Option<ConsolidationReport> {
     let backup_dir = paths.memory_backup_dir();
 
     // Acquire lock
-    let mut open_opts = std::fs::OpenOptions::new();
+    // ⚡ Bolt: Replace blocking std::fs with tokio::fs for non-blocking I/O in async context
+    let mut open_opts = tokio::fs::OpenOptions::new();
     open_opts.write(true).create_new(true);
 
-    let lock_result = open_opts.open(&lock_path).and_then(|mut f| {
-        use std::io::Write;
-        f.write_all(b"locked")
-    });
+    let lock_result = match open_opts.open(&lock_path).await {
+        Ok(mut f) => {
+            use tokio::io::AsyncWriteExt;
+            f.write_all(b"locked").await
+        }
+        Err(e) => Err(e),
+    };
 
     if let Err(e) = lock_result {
         warn!("Failed to acquire consolidation lock: {e}");
@@ -119,7 +123,8 @@ pub async fn consolidate(working_dir: &Path) -> Option<ConsolidationReport> {
     save_meta(&meta_path, &meta);
 
     // Release lock
-    let _ = std::fs::remove_file(&lock_path);
+    // ⚡ Bolt: Replace blocking std::fs with tokio::fs for non-blocking I/O in async context
+    let _ = tokio::fs::remove_file(&lock_path).await;
 
     result
 }
@@ -197,21 +202,34 @@ async fn run_consolidation(memory_dir: &Path, backup_dir: &Path) -> Option<Conso
         uuid::Uuid::new_v4()
     ));
 
+    // ⚡ Bolt: Replace blocking std::fs with tokio::fs for non-blocking I/O in async context
     let write_result = {
         #[cfg(unix)]
         {
+            let mut std_opts = std::fs::OpenOptions::new();
+            std_opts.write(true).create_new(true);
             use std::os::unix::fs::OpenOptionsExt;
-            let mut opts = std::fs::OpenOptions::new();
-            opts.write(true).create_new(true).mode(0o600);
-            opts.open(&tmp_path)
-                .and_then(|mut f| std::io::Write::write_all(&mut f, full_content.as_bytes()))
+            std_opts.mode(0o600);
+            let tokio_opts = tokio::fs::OpenOptions::from(std_opts);
+            match tokio_opts.open(&tmp_path).await {
+                Ok(mut f) => {
+                    use tokio::io::AsyncWriteExt;
+                    f.write_all(full_content.as_bytes()).await
+                }
+                Err(e) => Err(e),
+            }
         }
         #[cfg(not(unix))]
         {
-            let mut opts = std::fs::OpenOptions::new();
+            let mut opts = tokio::fs::OpenOptions::new();
             opts.write(true).create_new(true);
-            opts.open(&tmp_path)
-                .and_then(|mut f| std::io::Write::write_all(&mut f, full_content.as_bytes()))
+            match opts.open(&tmp_path).await {
+                Ok(mut f) => {
+                    use tokio::io::AsyncWriteExt;
+                    f.write_all(full_content.as_bytes()).await
+                }
+                Err(e) => Err(e),
+            }
         }
     };
 
