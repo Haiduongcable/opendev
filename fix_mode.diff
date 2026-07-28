@@ -1,0 +1,35 @@
+<<<<<<< SEARCH
+        #[cfg(unix)]
+        {
+            let mut opts = tokio::fs::OpenOptions::new();
+            opts.write(true).create_new(true);
+            // ⚡ Bolt: mode setting requires OpenOptionsExt for tokio but it's not readily available as trait without use
+            // let's use the explicit builder
+            opts.mode(0o600);
+            match opts.open(&tmp_path).await {
+                Ok(mut f) => {
+                    use tokio::io::AsyncWriteExt;
+                    f.write_all(full_content.as_bytes()).await
+                }
+                Err(e) => Err(e),
+            }
+        }
+=======
+        #[cfg(unix)]
+        {
+            let mut opts = tokio::fs::OpenOptions::new();
+            opts.write(true).create_new(true);
+            let mut std_opts = std::fs::OpenOptions::new();
+            std_opts.write(true).create_new(true);
+            use std::os::unix::fs::OpenOptionsExt;
+            std_opts.mode(0o600);
+            let mut tokio_opts = tokio::fs::OpenOptions::from(std_opts);
+            match tokio_opts.open(&tmp_path).await {
+                Ok(mut f) => {
+                    use tokio::io::AsyncWriteExt;
+                    f.write_all(full_content.as_bytes()).await
+                }
+                Err(e) => Err(e),
+            }
+        }
+>>>>>>> REPLACE
