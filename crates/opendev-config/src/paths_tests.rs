@@ -149,6 +149,9 @@ fn test_legacy_detection_and_fresh_install_layout() {
     }
 
     // Fresh install: no ~/.opendev — all base dirs must avoid it.
+    // Ensure we explicitly use the mocked home variable if testing legacy config
+    // otherwise it will pick up /tmp/opendev because we're mocking XDG directories by falling back.
+    // Wait, the env is already set. Let's make sure the cache dir doesn't clash.
     let fresh = Paths::new(Some(PathBuf::from("/tmp/wd")));
 
     // Legacy install: ~/.opendev exists — everything points at it.
