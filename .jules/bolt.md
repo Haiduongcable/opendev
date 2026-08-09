@@ -90,3 +90,6 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
+## 2024-05-18 - Zustand Full State Subscriptions
+**Learning:** Found instances where components were subscribing to the full Zustand store (e.g., `useChatStore(state => state)`) instead of using atomic selectors. This causes components to re-render on *any* state change within the store, which is a significant performance bottleneck in a chat application where state updates frequently.
+**Action:** When working with Zustand, always use atomic selectors (e.g., `useChatStore(state => state.property)`) or `useShallow` for multiple properties to prevent unnecessary re-renders. Also, be careful when testing frontend builds, as the build output modifies tracked files in `crates/opendev-web/static/` which should not be committed with source changes.
