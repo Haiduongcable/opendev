@@ -71,6 +71,14 @@ fn test_get_api_key_custom_provider_openai_env_fallback() {
         api_key: None,
         ..AppConfig::default()
     };
+
+    // Ensure convention environment variable is not set during this test
+    // Otherwise, the test will fail if run in an environment where it's accidentally present
+    // or if previous tests leaked the env var.
+    unsafe {
+        std::env::remove_var("UNKNOWN_TEST_PROVIDER_123_API_KEY");
+    }
+
     if let Ok(key) = std::env::var("OPENAI_API_KEY") {
         if !key.is_empty() {
             assert!(config_no_key.get_api_key().is_ok());
