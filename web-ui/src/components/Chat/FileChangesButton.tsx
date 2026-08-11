@@ -4,8 +4,16 @@ import { useChatStore } from '../../stores/chat';
 
 export function FileChangesButton() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { changes, summary, loadFileChanges, isLoading } = useFileChangesStore();
-  const { currentSessionId } = useChatStore(state => state);
+  // ⚡ Bolt Performance Optimization:
+  // Use atomic selectors instead of full store subscription (`useFileChangesStore()`)
+  // to prevent FileChangesButton from re-rendering on unrelated state changes.
+  const changes = useFileChangesStore(state => state.changes);
+  const summary = useFileChangesStore(state => state.summary);
+  const loadFileChanges = useFileChangesStore(state => state.loadFileChanges);
+  const isLoading = useFileChangesStore(state => state.isLoading);
+
+  // Use atomic selector for currentSessionId instead of state => state
+  const currentSessionId = useChatStore(state => state.currentSessionId);
 
   const handleClick = () => {
     if (currentSessionId && !isModalOpen) {
