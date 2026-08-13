@@ -1,11 +1,24 @@
 import { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useFileChangesStore } from '../../stores/fileChanges';
 import { useChatStore } from '../../stores/chat';
 
 export function FileChangesButton() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { changes, summary, loadFileChanges, isLoading } = useFileChangesStore();
-  const { currentSessionId } = useChatStore(state => state);
+
+  // ⚡ Bolt Optimization: Use shallow selectors to prevent unnecessary re-renders
+  // when unrelated file change state updates (e.g. tracking internal async load state)
+  const { changes, summary, loadFileChanges, isLoading } = useFileChangesStore(
+    useShallow((state) => ({
+      changes: state.changes,
+      summary: state.summary,
+      loadFileChanges: state.loadFileChanges,
+      isLoading: state.isLoading
+    }))
+  );
+
+  // ⚡ Bolt Optimization: Use atomic selector to prevent re-renders when other chat session state updates
+  const currentSessionId = useChatStore(state => state.currentSessionId);
 
   const handleClick = () => {
     if (currentSessionId && !isModalOpen) {
