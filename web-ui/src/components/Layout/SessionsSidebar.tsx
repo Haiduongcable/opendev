@@ -58,10 +58,13 @@ export function SessionsSidebar() {
   const isCollapsed = useChatStore(state => state.sidebarCollapsed);
   const toggleSidebar = useChatStore(state => state.toggleSidebar);
 
+  // ⚡ Bolt Performance Optimization:
+  // Pre-calculate whether the current session is empty instead of deriving it multiple times during render,
+  // and avoid using inline ?? [] to prevent allocating new array references on every component execution.
+  const currentSessionMessageCount = currentSessionId ? (sessionStates[currentSessionId]?.messages?.length ?? 0) : 0;
+
   // Disable "New Chat" when the current session has no messages yet
-  const currentSessionIsEmpty = currentSessionId !== null && (
-    (sessionStates[currentSessionId]?.messages ?? []).length === 0
-  );
+  const currentSessionIsEmpty = currentSessionId !== null && currentSessionMessageCount === 0;
 
   // Per-workspace check: only disable "New Session" in the workspace
   // that contains the current empty session (not globally).
@@ -69,7 +72,7 @@ export function SessionsSidebar() {
     if (currentSessionId === null) return false;
     const isCurrentInWorkspace = workspace.sessions.some(s => s.id === currentSessionId);
     if (!isCurrentInWorkspace) return false;
-    return (sessionStates[currentSessionId]?.messages ?? []).length === 0;
+    return currentSessionMessageCount === 0;
   };
 
   useEffect(() => {

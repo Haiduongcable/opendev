@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import { useChatStore } from '../../stores/chat';
 
+// ⚡ Bolt Performance Optimization:
+// Use a stable empty array reference to prevent unnecessary component re-renders
+// when returning [] inside the selector creates a new reference on every Zustand state change.
+const EMPTY_QUEUE: any[] = [];
+
 export function QueueBar() {
   const [expanded, setExpanded] = useState(false);
 
   const queuedMessages = useChatStore(state => {
     const sid = state.currentSessionId;
-    return sid ? state.sessionStates[sid]?.queuedMessages ?? [] : [];
+    return sid ? state.sessionStates[sid]?.queuedMessages ?? EMPTY_QUEUE : EMPTY_QUEUE;
   });
 
   if (queuedMessages.length === 0) return null;
