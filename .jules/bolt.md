@@ -90,3 +90,14 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
+## 2024-08-15 - [Zustand Selector Reference Equality]
+**Learning:** Returning new array references like `[]` inside Zustand selectors causes unnecessary React component re-renders on *every* store update, because strict equality (`===`) fails.
+**Action:** Always extract static arrays (e.g. `const EMPTY_MESSAGES: any[] = []`) outside the component and return that stable reference when providing fallbacks in Zustand selectors.
+
+## 2024-08-15 - [Accidental Build Artifact Commits]
+**Learning:** `npm run build` inside `web-ui` deposits compiled JS and CSS bundles into `crates/opendev-web/static/assets/`. Staging these files litters the PR with massive, unreviewable build artifacts.
+**Action:** Be extremely cautious to avoid `git add .` after a frontend build, and actively undo any staged files in `crates/opendev-web/static/` before submitting.
+
+## 2024-08-15 - [Avoiding Object Subscriptions]
+**Learning:** A store subscription like `useStore(state => state.myObjects)` combined with `state.myObjects[id]` will re-render whenever *any* object in the dictionary changes.
+**Action:** Select only the specific property needed (e.g. `useStore(state => state.myObjects[id]?.length)`) to isolate re-renders to only when that specific item changes.

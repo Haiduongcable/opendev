@@ -4,10 +4,16 @@ import { WelcomeScreen } from './WelcomeScreen';
 import { ProgressIndicator } from './ProgressIndicator';
 import { MessageItem } from './MessageItem';
 
+// ⚡ Bolt Performance Optimization:
+// Use a stable empty array reference to prevent unnecessary component re-renders
+// when a session has no messages, as returning [] inside the selector creates
+// a new reference on every Zustand state change.
+const EMPTY_MESSAGES: any[] = [];
+
 export function MessageList() {
   const messages = useChatStore(state => {
     const sid = state.currentSessionId;
-    return sid ? state.sessionStates[sid]?.messages ?? [] : [];
+    return sid ? state.sessionStates[sid]?.messages ?? EMPTY_MESSAGES : EMPTY_MESSAGES;
   });
   const isLoading = useChatStore(state => {
     const sid = state.currentSessionId;
