@@ -207,7 +207,7 @@ async fn run_consolidation(memory_dir: &Path, backup_dir: &Path) -> Option<Conso
             use std::os::unix::fs::OpenOptionsExt;
             std_opts.mode(0o600);
         }
-        let mut opts = tokio::fs::OpenOptions::from(std_opts);
+        let opts = tokio::fs::OpenOptions::from(std_opts);
 
         let mut f = opts.open(&tmp_path).await?;
         use tokio::io::AsyncWriteExt;
