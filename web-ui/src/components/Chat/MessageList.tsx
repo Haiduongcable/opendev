@@ -3,11 +3,12 @@ import { useChatStore } from '../../stores/chat';
 import { WelcomeScreen } from './WelcomeScreen';
 import { ProgressIndicator } from './ProgressIndicator';
 import { MessageItem } from './MessageItem';
+import { EMPTY_ARRAY } from '../../utils/constants';
 
 export function MessageList() {
   const messages = useChatStore(state => {
     const sid = state.currentSessionId;
-    return sid ? state.sessionStates[sid]?.messages ?? [] : [];
+    return sid ? state.sessionStates[sid]?.messages ?? EMPTY_ARRAY : EMPTY_ARRAY;
   });
   const isLoading = useChatStore(state => {
     const sid = state.currentSessionId;
