@@ -27,6 +27,7 @@ fn make_assistant_with_tool(content: &str, tool_name: &str) -> DisplayMessage {
         role: DisplayRole::Assistant,
         content: content.to_string(),
         tool_call: Some(DisplayToolCall {
+            error_text: None,
             name: tool_name.to_string(),
             arguments: HashMap::new(),
             summary: Some(format!("{tool_name} summary")),
@@ -37,6 +38,7 @@ fn make_assistant_with_tool(content: &str, tool_name: &str) -> DisplayMessage {
         }),
         collapsed: false,
         thinking_started_at: None,
+        thinking_finalized_at: None,
         thinking_duration_secs: None,
     }
 }
@@ -73,7 +75,7 @@ fn bench_conversation_render(c: &mut Criterion) {
 
         group.bench_function(format!("{count}_messages"), |b| {
             b.iter(|| {
-                let widget = ConversationWidget::new(black_box(&messages), 0).terminal_width(120);
+                let widget = ConversationWidget::new(black_box(&messages), 0);
                 let mut buf = Buffer::empty(area);
                 widget.render(area, &mut buf);
             });
@@ -95,7 +97,7 @@ fn bench_build_lines(c: &mut Criterion) {
 
         group.bench_function(format!("{count}_messages"), |b| {
             b.iter(|| {
-                let widget = ConversationWidget::new(black_box(&messages), 0).terminal_width(120);
+                let widget = ConversationWidget::new(black_box(&messages), 0);
                 // build_lines is called internally during render; we exercise it
                 // via a full render but into a minimal buffer to isolate line building cost.
                 let area = Rect::new(0, 0, 120, 1);
