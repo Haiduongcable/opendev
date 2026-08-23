@@ -1,0 +1,9 @@
+--- crates/opendev-agents/src/react_loop/types.rs
++++ crates/opendev-agents/src/react_loop/types.rs
+@@ -93,5 +93,5 @@
+     /// Continue to the next iteration of the main loop.
+     Continue,
+     /// Return this result from `run_inner`.
+-    Return(Result<AgentResult, AgentError>),
++    Return(Box<Result<AgentResult, AgentError>>),
+ }
