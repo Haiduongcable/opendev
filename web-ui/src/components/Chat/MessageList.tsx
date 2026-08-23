@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useChatStore } from '../../stores/chat';
 import { WelcomeScreen } from './WelcomeScreen';
-import { EMPTY_ARRAY } from '../../constants/common';
 import { ProgressIndicator } from './ProgressIndicator';
 import { MessageItem } from './MessageItem';
 
 export function MessageList() {
   const messages = useChatStore(state => {
     const sid = state.currentSessionId;
-    return sid ? state.sessionStates[sid]?.messages ?? EMPTY_ARRAY : EMPTY_ARRAY;
+    return sid ? state.sessionStates[sid]?.messages ?? [] : [];
   });
   const isLoading = useChatStore(state => {
     const sid = state.currentSessionId;
