@@ -5,6 +5,9 @@ import { useChatStore } from '../../stores/chat';
 export function FileChangesButton() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { changes, summary, loadFileChanges, isLoading } = useFileChangesStore();
+
+  // ⚡ Bolt: Using atomic selector instead of subscribing to the entire state
+  // This prevents the button from unnecessarily re-rendering on unrelated chat updates.
   const currentSessionId = useChatStore(state => state.currentSessionId);
 
   const handleClick = () => {
