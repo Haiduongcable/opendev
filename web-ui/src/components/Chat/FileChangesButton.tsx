@@ -5,7 +5,7 @@ import { useChatStore } from '../../stores/chat';
 export function FileChangesButton() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { changes, summary, loadFileChanges, isLoading } = useFileChangesStore();
-  const { currentSessionId } = useChatStore(state => state);
+  const currentSessionId = useChatStore(state => state.currentSessionId);
 
   const handleClick = () => {
     if (currentSessionId && !isModalOpen) {
