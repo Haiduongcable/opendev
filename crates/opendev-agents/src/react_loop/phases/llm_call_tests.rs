@@ -205,9 +205,13 @@ async fn consecutive_retryable_failures_hit_cap_and_return_error() {
 
     // The MAX-th consecutive failure must give up with a real error.
     match run_call(&client, &mut state).await {
-        Err(Some(LoopAction::Return(Err(AgentError::LlmError(msg))))) => {
-            assert!(msg.contains("times in a row"), "msg: {msg}");
-            assert!(msg.contains("OPENDEV_DEBUG=1"), "msg: {msg}");
+        Err(Some(LoopAction::Return(box_err))) => {
+            if let Err(AgentError::LlmError(msg)) = *box_err {
+                assert!(msg.contains("times in a row"), "msg: {msg}");
+                assert!(msg.contains("OPENDEV_DEBUG=1"), "msg: {msg}");
+            } else {
+                panic!("expected LlmError after cap");
+            }
         }
         other => panic!("expected LlmError after cap, got {:?}", other.is_ok()),
     }
@@ -224,10 +228,14 @@ async fn non_retryable_failure_fails_fast_on_first_call() {
     let mut state = LoopState::new(&std::env::temp_dir());
 
     match run_call(&client, &mut state).await {
-        Err(Some(LoopAction::Return(Err(AgentError::LlmError(msg))))) => {
-            assert!(msg.contains("Invalid API key"), "msg: {msg}");
-            assert!(msg.contains("request_id="), "msg: {msg}");
-            assert!(msg.contains("OPENDEV_DEBUG=1"), "msg: {msg}");
+        Err(Some(LoopAction::Return(box_err))) => {
+            if let Err(AgentError::LlmError(msg)) = *box_err {
+                assert!(msg.contains("Invalid API key"), "msg: {msg}");
+                assert!(msg.contains("request_id="), "msg: {msg}");
+                assert!(msg.contains("OPENDEV_DEBUG=1"), "msg: {msg}");
+            } else {
+                panic!("expected immediate LlmError for 401");
+            }
         }
         other => panic!(
             "expected immediate LlmError for 401, got {:?}",
