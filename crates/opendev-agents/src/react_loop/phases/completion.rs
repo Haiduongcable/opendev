@@ -118,9 +118,9 @@ where
                     pending,
                     "Background tasks still pending after 10 nudges — aborting to prevent hang"
                 );
-                return LoopAction::Return(Err(crate::traits::AgentError::Other(format!(
+                return LoopAction::Return(Box::new(Err(crate::traits::AgentError::Other(format!(
                     "{pending} background task(s) did not complete after 10 wait nudges — aborting"
-                ))));
+                )))));
             }
         }
     }
@@ -152,7 +152,7 @@ where
             "Background requested at completion — yielding"
         );
         react_loop.push_metrics(iter_metrics);
-        return LoopAction::Return(Ok(AgentResult::backgrounded(messages.clone())));
+        return LoopAction::Return(Box::new(Ok(AgentResult::backgrounded(messages.clone()))));
     }
 
     react_loop.push_metrics(iter_metrics);
@@ -176,5 +176,5 @@ where
     play_finish_sound();
     let mut result = AgentResult::ok(content, messages.clone());
     result.completion_status = status;
-    LoopAction::Return(Ok(result))
+    LoopAction::Return(Box::new(Ok(result)))
 }
