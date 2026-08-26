@@ -341,9 +341,7 @@ async fn scan_all_memory_files(dir: &Path) -> Vec<MemoryFile> {
             _ => continue,
         };
 
-        let modified = metadata
-            .modified()
-            .unwrap_or(SystemTime::UNIX_EPOCH);
+        let modified = metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH);
 
         let content = match tokio::fs::read_to_string(&path).await {
             Ok(c) => c,
