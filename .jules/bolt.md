@@ -90,3 +90,11 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
+
+## 2024-08-04 - tokio::fs directory scanning and async test requirements
+**Learning:** When refactoring functions that scan directories or modify files to use  within , be sure to also update the test cases that call these functions. Test cases must be marked with  and the function calls must be  to properly run the async code.
+**Action:** Always check the call sites (including test files) and propagate the / requirements when changing a function from synchronous  to asynchronous .
+
+## 2024-08-04 - tokio::fs directory scanning and async test requirements
+**Learning:** When refactoring functions that scan directories or modify files to use `tokio::fs` within `async fn`, be sure to also update the test cases that call these functions. Test cases must be marked with `#[tokio::test]` and the function calls must be awaited to properly run the async code.
+**Action:** Always check the call sites (including test files) and propagate the `async`/`.await` requirements when changing a function from synchronous `std::fs` to asynchronous `tokio::fs`.
