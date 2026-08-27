@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { useChatStore } from '../../stores/chat';
+import { EMPTY_ARRAY } from '../../constants/common';
 
 export function QueueBar() {
   const [expanded, setExpanded] = useState(false);
 
+  // PERFORMANCE: Use stable EMPTY_ARRAY reference for empty fallback in selector
+  // to avoid breaking React strict equality checks on re-render.
+  // Impact: Prevents unnecessary component re-renders when other state changes.
   const queuedMessages = useChatStore(state => {
     const sid = state.currentSessionId;
-    return sid ? state.sessionStates[sid]?.queuedMessages ?? [] : [];
+    return sid ? state.sessionStates[sid]?.queuedMessages ?? EMPTY_ARRAY : EMPTY_ARRAY;
   });
 
   if (queuedMessages.length === 0) return null;
