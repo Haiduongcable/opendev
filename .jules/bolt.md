@@ -90,3 +90,7 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
+
+## 2026-08-29 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs OpenOptions
+**Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs::OpenOptions` and `std::io::Write` inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance. This includes creating lock files and writing temporary files.
+**Action:** Replaced `std::fs::OpenOptions` and `std::io::Write` with their `tokio::fs` and `tokio::io::AsyncWriteExt` equivalents (e.g., `tokio::fs::OpenOptions`). For Unix mode conversions, first construct `std::fs::OpenOptions`, apply the mode with `OpenOptionsExt`, and use `tokio::fs::OpenOptions::from(std_opts)` to ensure non-blocking file I/O operations while keeping correct file permissions.
