@@ -93,3 +93,6 @@
 ## 2024-05-24 - [Stable Zustand Array Selectors]
 **Learning:** [Returning inline arrays `[]` in Zustand selectors breaks shallow equality checks on every store change, forcing React components to re-render needlessly.]
 **Action:** [Use the provided constant `EMPTY_ARRAY` from `web-ui/src/constants/common.ts` in Zustand selectors for fallbacks rather than a newly allocated array.]
+## 2024-05-24 - [Avoid `format!` without arguments]
+**Learning:** [Using `format!("string")` instead of `"string".to_string()` incurs unnecessary macro overhead and fails the strict `clippy --workspace -- -D warnings` CI step.]
+**Action:** [Always use `.to_string()` for static strings when allocating a String.]
