@@ -99,3 +99,6 @@
 ## 2024-05-24 - [Avoid `result_large_err` clippy failures]
 **Learning:** [Returning large types like `Result<AgentResult, AgentError>` inside an enum variant can exceed size limits and fail the strict `clippy --workspace -- -D warnings` CI step with `result_large_err`.]
 **Action:** [Box the inner large types (e.g. `Box<Result<...>>`) when defining enum variants to reduce their stack footprint.]
+## 2024-05-24 - [Avoid `rustfmt` failures from scripts]
+**Learning:** [Automated scripts that refactor Rust code easily violate `cargo fmt --all -- --check`, causing CI to fail.]
+**Action:** [Always run `cargo fmt --all` after bulk automated replacements in Rust code.]

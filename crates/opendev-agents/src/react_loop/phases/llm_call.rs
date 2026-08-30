@@ -185,11 +185,13 @@ where
                     failures = state.consecutive_llm_failures,
                     "Giving up after repeated LLM call failures"
                 );
-                return Err(LoopAction::Return(Box::new(Err(AgentError::LlmError(format!(
-                    "LLM request failed {} times in a row; giving up. Last error: {err_msg}. {}",
-                    state.consecutive_llm_failures,
-                    debug_hint(debug_logger)
-                ))))));
+                return Err(LoopAction::Return(Box::new(Err(AgentError::LlmError(
+                    format!(
+                        "LLM request failed {} times in a row; giving up. Last error: {err_msg}. {}",
+                        state.consecutive_llm_failures,
+                        debug_hint(debug_logger)
+                    ),
+                )))));
             }
             // Back off before the next iteration. The lower HTTP layer can
             // open a circuit breaker and reject for several seconds; without
@@ -202,10 +204,9 @@ where
             tokio::time::sleep(backoff).await;
             return Err(LoopAction::Continue);
         }
-        return Err(LoopAction::Return(Box::new(Err(AgentError::LlmError(format!(
-            "{err_msg}. {}",
-            debug_hint(debug_logger)
-        ))))));
+        return Err(LoopAction::Return(Box::new(Err(AgentError::LlmError(
+            format!("{err_msg}. {}", debug_hint(debug_logger)),
+        )))));
     }
 
     // Successful call — reset the consecutive-failure counter.
@@ -213,7 +214,9 @@ where
 
     // Extract body
     let body = http_result.body.ok_or_else(|| {
-        LoopAction::Return(Box::new(Err(AgentError::LlmError("Empty response body".to_string()))))
+        LoopAction::Return(Box::new(Err(AgentError::LlmError(
+            "Empty response body".to_string(),
+        ))))
     })?;
 
     // Check for API error in response body
@@ -225,9 +228,9 @@ where
         if let Some(logger) = debug_logger {
             logger.log_llm_error(state.iteration, msg);
         }
-        return Err(LoopAction::Return(Box::new(Err(AgentError::LlmError(format!(
-            "API error: {msg}"
-        ))))));
+        return Err(LoopAction::Return(Box::new(Err(AgentError::LlmError(
+            format!("API error: {msg}"),
+        )))));
     }
 
     // Debug log: incoming LLM response

@@ -205,8 +205,13 @@ async fn consecutive_retryable_failures_hit_cap_and_return_error() {
 
     // The MAX-th consecutive failure must give up with a real error.
     match run_call(&client, &mut state).await {
-        Err(Some(LoopAction::Return(box_res))) if matches!(&*box_res, Err(AgentError::LlmError(_))) => {
-            let msg = match &*box_res { Err(AgentError::LlmError(m)) => m.clone(), _ => unreachable!() };
+        Err(Some(LoopAction::Return(box_res)))
+            if matches!(&*box_res, Err(AgentError::LlmError(_))) =>
+        {
+            let msg = match &*box_res {
+                Err(AgentError::LlmError(m)) => m.clone(),
+                _ => unreachable!(),
+            };
             assert!(msg.contains("times in a row"), "msg: {msg}");
             assert!(msg.contains("OPENDEV_DEBUG=1"), "msg: {msg}");
         }
@@ -225,8 +230,13 @@ async fn non_retryable_failure_fails_fast_on_first_call() {
     let mut state = LoopState::new(&std::env::temp_dir());
 
     match run_call(&client, &mut state).await {
-        Err(Some(LoopAction::Return(box_res))) if matches!(&*box_res, Err(AgentError::LlmError(_))) => {
-            let msg = match &*box_res { Err(AgentError::LlmError(m)) => m.clone(), _ => unreachable!() };
+        Err(Some(LoopAction::Return(box_res)))
+            if matches!(&*box_res, Err(AgentError::LlmError(_))) =>
+        {
+            let msg = match &*box_res {
+                Err(AgentError::LlmError(m)) => m.clone(),
+                _ => unreachable!(),
+            };
             assert!(msg.contains("Invalid API key"), "msg: {msg}");
             assert!(msg.contains("request_id="), "msg: {msg}");
             assert!(msg.contains("OPENDEV_DEBUG=1"), "msg: {msg}");
