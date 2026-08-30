@@ -96,3 +96,6 @@
 ## 2024-05-24 - [Avoid `format!` without arguments]
 **Learning:** [Using `format!("string")` instead of `"string".to_string()` incurs unnecessary macro overhead and fails the strict `clippy --workspace -- -D warnings` CI step.]
 **Action:** [Always use `.to_string()` for static strings when allocating a String.]
+## 2024-05-24 - [Avoid `result_large_err` clippy failures]
+**Learning:** [Returning large types like `Result<AgentResult, AgentError>` inside an enum variant can exceed size limits and fail the strict `clippy --workspace -- -D warnings` CI step with `result_large_err`.]
+**Action:** [Box the inner large types (e.g. `Box<Result<...>>`) when defining enum variants to reduce their stack footprint.]
