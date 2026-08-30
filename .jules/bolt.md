@@ -90,3 +90,15 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
+## 2024-05-24 - [Stable Zustand Array Selectors]
+**Learning:** [Returning inline arrays `[]` in Zustand selectors breaks shallow equality checks on every store change, forcing React components to re-render needlessly.]
+**Action:** [Use the provided constant `EMPTY_ARRAY` from `web-ui/src/constants/common.ts` in Zustand selectors for fallbacks rather than a newly allocated array.]
+## 2024-05-24 - [Avoid `format!` without arguments]
+**Learning:** [Using `format!("string")` instead of `"string".to_string()` incurs unnecessary macro overhead and fails the strict `clippy --workspace -- -D warnings` CI step.]
+**Action:** [Always use `.to_string()` for static strings when allocating a String.]
+## 2024-05-24 - [Avoid `result_large_err` clippy failures]
+**Learning:** [Returning large types like `Result<AgentResult, AgentError>` inside an enum variant can exceed size limits and fail the strict `clippy --workspace -- -D warnings` CI step with `result_large_err`.]
+**Action:** [Box the inner large types (e.g. `Box<Result<...>>`) when defining enum variants to reduce their stack footprint.]
+## 2024-05-24 - [Avoid `rustfmt` failures from scripts]
+**Learning:** [Automated scripts that refactor Rust code easily violate `cargo fmt --all -- --check`, causing CI to fail.]
+**Action:** [Always run `cargo fmt --all` after bulk automated replacements in Rust code.]
