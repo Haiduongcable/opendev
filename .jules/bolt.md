@@ -90,3 +90,11 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
+
+## 2024-08-04 - New Array Allocations in Zustand Selectors
+**Learning:** Returning a new inline array (e.g., `[]`) inside a Zustand selector as a fallback (like `return state.items ?? []`) breaks strict equality checks (`===`). This causes the component to re-render every single time the global Zustand store updates, even if the relevant data for that component hasn't changed.
+**Action:** Always use a stable, frozen empty array reference (like `export const EMPTY_ARRAY = Object.freeze([]) as never[];`) when falling back to an empty array inside Zustand selectors. Alternatively, use the `useShallow` hook from `zustand/react/shallow` if returning computed arrays or objects.
+
+## 2024-08-04 - Type Checking vs Formatting Build Artifacts
+**Learning:** During pre-commit verifications, tools like Vite will output compiled assets (e.g. JS/CSS files to `crates/opendev-web/static/assets/`) which may unintentionally be tracked by Git if running a full build command (`npm run build`). Checking these in creates large diffs and clutters history.
+**Action:** Exclude generated artifacts like `node_modules` or static `dist` bundles from Git history. Do not run `npm install` followed by a full `npm run build` unless explicitly instructed to commit output artifacts. Verify type correctness using `npx tsc --noEmit` instead of relying on the full build pipeline during routine tasks.
