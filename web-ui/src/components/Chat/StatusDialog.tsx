@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { useChatStore } from '../../stores/chat';
 import { apiClient } from '../../api/client';
+import { EMPTY_ARRAY } from '../../constants/common';
 
 interface StatusDialogProps {
   isOpen: boolean;
@@ -30,8 +31,8 @@ export function StatusDialog({ isOpen, onClose }: StatusDialogProps) {
     if (!isOpen) return;
     setLoading(true);
     apiClient.get<{ servers: MCPServer[] }>('/mcp/servers')
-      .then(data => setMcpServers(data?.servers || []))
-      .catch(() => setMcpServers([]))
+      .then(data => setMcpServers(data?.servers || EMPTY_ARRAY))
+      .catch(() => setMcpServers(EMPTY_ARRAY))
       .finally(() => setLoading(false));
   }, [isOpen]);
 
