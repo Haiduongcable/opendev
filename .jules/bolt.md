@@ -90,6 +90,6 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
-## 2024-09-04 - Unnecessary re-renders via Zustand stores
-**Learning:** Destructuring multiple properties from a Zustand store using `const { prop1, prop2 } = useStore()` subscribes the component to the entire store. This causes the component to re-render whenever *any* property in the store changes, even if `prop1` or `prop2` are unchanged.
-**Action:** Always use atomic selectors like `const prop1 = useStore(state => state.prop1)` or `useShallow` when subscribing to Zustand stores to prevent unnecessary component re-renders.
+## 2026-09-04 - Box enum variants for result_large_err
+**Learning:** Returning a large `Result<T, E>` directly within an enum variant (like `LoopAction::Return`) triggers Clippy's `result_large_err` warning when compiled with `-D warnings` because the largest variant dictates the size of the entire enum, consuming excessive stack memory.
+**Action:** When defining enum variants that hold potentially large data types (especially `Result` where the `Err` type can be large), box the payload to prevent excessive stack usage (e.g., `Return(Box<Result<T, E>>)`).

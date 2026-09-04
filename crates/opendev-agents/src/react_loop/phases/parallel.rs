@@ -126,7 +126,7 @@ where
                         }
                         iter_metrics.total_duration_ms = iter_start.elapsed().as_millis() as u64;
                         react_loop.push_metrics(iter_metrics.clone());
-                        return Some(LoopAction::Return(Ok(AgentResult::backgrounded(messages.clone()))));
+                        return Some(LoopAction::Return(Box::new(Ok(AgentResult::backgrounded(messages.clone())))));
                     }
                     for tc in tool_calls {
                         let tc_id = tc.get("id").and_then(|id| id.as_str()).unwrap_or("unknown");
@@ -142,7 +142,7 @@ where
                     }
                     iter_metrics.total_duration_ms = iter_start.elapsed().as_millis() as u64;
                     react_loop.push_metrics(iter_metrics.clone());
-                    return Some(LoopAction::Return(Ok(AgentResult::interrupted(messages.clone()))));
+                    return Some(LoopAction::Return(Box::new(Ok(AgentResult::interrupted(messages.clone())))));
                 }
             }
         }
@@ -200,9 +200,9 @@ where
             );
             iter_metrics.total_duration_ms = iter_start.elapsed().as_millis() as u64;
             react_loop.push_metrics(iter_metrics.clone());
-            return Some(LoopAction::Return(Ok(AgentResult::backgrounded(
+            return Some(LoopAction::Return(Box::new(Ok(AgentResult::backgrounded(
                 messages.clone(),
-            ))));
+            )))));
         }
         let partial = PartialResult::from_interrupted_state(
             messages,
@@ -215,7 +215,7 @@ where
         react_loop.push_metrics(iter_metrics.clone());
         let mut result = AgentResult::interrupted(messages.clone());
         result.partial_result = Some(partial);
-        return Some(LoopAction::Return(Ok(result)));
+        return Some(LoopAction::Return(Box::new(Ok(result))));
     }
 
     // Skip the sequential loop
