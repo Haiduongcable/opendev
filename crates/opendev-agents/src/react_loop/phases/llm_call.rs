@@ -116,7 +116,7 @@ where
                 model = %payload["model"],
             ))
             .await
-            .map_err(|e| LoopAction::Return(Err(e)))?
+            .map_err(|e| LoopAction::Return(Box::new(Err(e))))?
         } else {
             async {
                 http_client
@@ -130,7 +130,7 @@ where
                 model = %payload["model"],
             ))
             .await
-            .map_err(|e| LoopAction::Return(Err(e)))?
+            .map_err(|e| LoopAction::Return(Box::new(Err(e))))?
         }
     } else {
         async {
@@ -145,7 +145,7 @@ where
             model = %payload["model"],
         ))
         .await
-        .map_err(|e| LoopAction::Return(Err(e)))?
+        .map_err(|e| LoopAction::Return(Box::new(Err(e))))?
     };
     let llm_latency_ms = llm_start.elapsed().as_millis() as u64;
 
@@ -156,13 +156,13 @@ where
                 iteration = state.iteration,
                 "Background requested during LLM call — yielding"
             );
-            return Err(LoopAction::Return(Ok(AgentResult::backgrounded(
+            return Err(LoopAction::Return(Box::new(Ok(AgentResult::backgrounded(
                 messages.clone(),
-            ))));
+            )))));
         }
-        return Err(LoopAction::Return(Ok(AgentResult::interrupted(
+        return Err(LoopAction::Return(Box::new(Ok(AgentResult::interrupted(
             messages.clone(),
-        ))));
+        )))));
     }
 
     // Handle HTTP failure
@@ -185,10 +185,12 @@ where
                     failures = state.consecutive_llm_failures,
                     "Giving up after repeated LLM call failures"
                 );
-                return Err(LoopAction::Return(Err(AgentError::LlmError(format!(
-                    "LLM request failed {} times in a row; giving up. Last error: {err_msg}. {}",
-                    state.consecutive_llm_failures,
-                    debug_hint(debug_logger)
+                return Err(LoopAction::Return(Box::new(Err(AgentError::LlmError(
+                    format!(
+                        "LLM request failed {} times in a row; giving up. Last error: {err_msg}. {}",
+                        state.consecutive_llm_failures,
+                        debug_hint(debug_logger)
+                    ),
                 )))));
             }
             // Back off before the next iteration. The lower HTTP layer can
@@ -202,9 +204,8 @@ where
             tokio::time::sleep(backoff).await;
             return Err(LoopAction::Continue);
         }
-        return Err(LoopAction::Return(Err(AgentError::LlmError(format!(
-            "{err_msg}. {}",
-            debug_hint(debug_logger)
+        return Err(LoopAction::Return(Box::new(Err(AgentError::LlmError(
+            format!("{err_msg}. {}", debug_hint(debug_logger)),
         )))));
     }
 
@@ -213,7 +214,9 @@ where
 
     // Extract body
     let body = http_result.body.ok_or_else(|| {
-        LoopAction::Return(Err(AgentError::LlmError("Empty response body".to_string())))
+        LoopAction::Return(Box::new(Err(AgentError::LlmError(
+            "Empty response body".to_string(),
+        ))))
     })?;
 
     // Check for API error in response body
@@ -225,8 +228,8 @@ where
         if let Some(logger) = debug_logger {
             logger.log_llm_error(state.iteration, msg);
         }
-        return Err(LoopAction::Return(Err(AgentError::LlmError(format!(
-            "API error: {msg}"
+        return Err(LoopAction::Return(Box::new(Err(AgentError::LlmError(
+            format!("API error: {msg}"),
         )))));
     }
 
