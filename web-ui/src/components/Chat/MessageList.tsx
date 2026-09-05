@@ -8,6 +8,10 @@ import { EMPTY_ARRAY } from '../../constants/common';
 export function MessageList() {
   const messages = useChatStore(state => {
     const sid = state.currentSessionId;
+    // ⚡ Bolt Performance Optimization:
+    // Using a shared, frozen EMPTY_ARRAY instead of an inline `[]` fallback prevents Zustand
+    // from returning a new array reference on every store update when `messages` is undefined.
+    // This preserves referential equality and prevents O(N) unnecessary React re-renders.
     return sid ? state.sessionStates[sid]?.messages ?? EMPTY_ARRAY : EMPTY_ARRAY;
   });
   const isLoading = useChatStore(state => {

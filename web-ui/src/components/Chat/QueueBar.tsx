@@ -7,6 +7,10 @@ export function QueueBar() {
 
   const queuedMessages = useChatStore(state => {
     const sid = state.currentSessionId;
+    // ⚡ Bolt Performance Optimization:
+    // Using a shared, frozen EMPTY_ARRAY instead of an inline `[]` fallback prevents Zustand
+    // from returning a new array reference on every store update when `queuedMessages` is undefined.
+    // This preserves referential equality and prevents O(N) unnecessary React re-renders.
     return sid ? state.sessionStates[sid]?.queuedMessages ?? EMPTY_ARRAY : EMPTY_ARRAY;
   });
 

@@ -61,6 +61,7 @@ export function SessionsSidebar() {
 
   // Disable "New Chat" when the current session has no messages yet
   const currentSessionIsEmpty = currentSessionId !== null && (
+    // ⚡ Bolt Performance Optimization: Use EMPTY_ARRAY fallback to prevent referential churn
     (sessionStates[currentSessionId]?.messages ?? EMPTY_ARRAY).length === 0
   );
 
@@ -70,6 +71,7 @@ export function SessionsSidebar() {
     if (currentSessionId === null) return false;
     const isCurrentInWorkspace = workspace.sessions.some(s => s.id === currentSessionId);
     if (!isCurrentInWorkspace) return false;
+    // ⚡ Bolt Performance Optimization: Use EMPTY_ARRAY fallback to prevent referential churn
     return (sessionStates[currentSessionId]?.messages ?? EMPTY_ARRAY).length === 0;
   };
 
