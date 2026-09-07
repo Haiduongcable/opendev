@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY } from "../../constants/common";
 import type { Edge } from '@xyflow/react';
 import type { CollapsedFlowNode } from '../../components/TraceAnalysis/CollapsedNode';
 import type { CollapsedNodeData, AnyNodeData } from '../../types/trace';
@@ -36,13 +37,13 @@ export function collapseGraph(
   const meaningfulOuts = (id: string): string[] => {
     const result: string[] = [];
     const visited = new Set<string>();
-    const stack = [...(outEdges.get(id) ?? [])];
+    const stack = [...(outEdges.get(id) ?? EMPTY_ARRAY)];
     while (stack.length > 0) {
       const cid = stack.pop()!;
       if (visited.has(cid)) continue;
       visited.add(cid);
       if (isHookProgress(cid)) {
-        for (const grandchild of outEdges.get(cid) ?? []) stack.push(grandchild);
+        for (const grandchild of outEdges.get(cid) ?? EMPTY_ARRAY) stack.push(grandchild);
       } else {
         result.push(cid);
       }
@@ -53,7 +54,7 @@ export function collapseGraph(
   const realParent = (id: string): string => {
     let cur = id;
     while (isHookProgress(cur)) {
-      const parents = inEdges.get(cur) ?? [];
+      const parents = inEdges.get(cur) ?? EMPTY_ARRAY;
       if (parents.length !== 1) break;
       cur = parents[0];
     }
@@ -64,7 +65,7 @@ export function collapseGraph(
     if (nodeMap.get(id)?.type === 'taskNode') return false;
     if (nodeMap.get(id)?.type === 'toolNode') return false;
     if (isHookProgress(id)) return false;
-    const ins = inEdges.get(id) ?? [];
+    const ins = inEdges.get(id) ?? EMPTY_ARRAY;
     const outs = meaningfulOuts(id);
     return ins.length === 1 && outs.length === 1;
   };
@@ -93,7 +94,7 @@ export function collapseGraph(
     }
 
     if (!nodeToChain.has(cur) && !isLinear(cur)) {
-      const ins = inEdges.get(cur) ?? [];
+      const ins = inEdges.get(cur) ?? EMPTY_ARRAY;
       const outs = meaningfulOuts(cur);
       const node = nodeMap.get(cur);
       if (ins.length === 1 && outs.length === 0 && node?.type !== 'taskNode' && node?.type !== 'toolNode' && !isHookProgress(cur)) {
@@ -106,7 +107,7 @@ export function collapseGraph(
   for (const n of rawNodes) {
     if (!isHookProgress(n.id)) continue;
     if (nodeToChain.has(n.id)) continue;
-    const parentIds = inEdges.get(n.id) ?? [];
+    const parentIds = inEdges.get(n.id) ?? EMPTY_ARRAY;
     for (const parentId of parentIds) {
       const chainIdx = nodeToChain.get(parentId);
       if (chainIdx !== undefined) {
