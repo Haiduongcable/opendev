@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY } from "../../constants/common";
 import { useState, useRef, useEffect } from 'react';
 import type { Message } from '../../types';
 import { BashPreview } from './BashPreview';
@@ -134,8 +135,8 @@ function summarizeToolArgs(toolName: string, toolArgs: any): string {
     'git': ['command', 'args'],
     'memory_search': ['query'],
     'memory_write': ['key', 'content'],
-    'list_sessions': [],
-    'list_subagents': [],
+    'list_sessions': EMPTY_ARRAY,
+    'list_subagents': EMPTY_ARRAY,
   };
 
   const keys = primaryKeys[toolName] || Object.keys(toolArgs);
@@ -406,7 +407,7 @@ function formatGenericResult(_toolArgs: any, result: any): string[] {
   if (typeof output === 'string') {
     const lines = output.split('\n').filter((line: string) => line.trim());
     if (lines.length === 0) return [];
-    return lines.slice(0, 3).concat(lines.length > 3 ? ['…'] : []);
+    return lines.slice(0, 3).concat(lines.length > 3 ? ['…'] : EMPTY_ARRAY);
   }
 
   if (Array.isArray(output)) {
@@ -421,7 +422,7 @@ function formatGenericResult(_toolArgs: any, result: any): string[] {
     return ['Object received'];
   }
 
-  return output ? [String(output)] : [];
+  return output ? [String(output)] : EMPTY_ARRAY;
 }
 
 interface ToolCallMessageExtProps extends ToolCallMessageProps {

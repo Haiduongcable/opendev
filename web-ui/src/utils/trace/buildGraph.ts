@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY } from "../../constants/common";
 import type { Edge } from '@xyflow/react';
 import type { TraceFlowNode } from '../../components/TraceAnalysis/TraceNode';
 import type { ToolFlowNode } from '../../components/TraceAnalysis/ToolNode';
@@ -209,7 +210,7 @@ export function mergeToolCallNodes(
     if (et !== 'assistant' && et !== 'subagent-assistant') continue;
     if (!nodeHasToolUse(node)) continue;
 
-    const allChildren = outEdges.get(node.id) ?? [];
+    const allChildren = outEdges.get(node.id) ?? EMPTY_ARRAY;
     const childId = allChildren.find(cid => {
       if (toRemove.has(cid)) return false;
       const child = nodeMap.get(cid);
@@ -239,7 +240,7 @@ export function mergeToolCallNodes(
       const parNode = nodeMap.get(parId);
       if (!parNode) continue;
 
-      const parChildren = outEdges.get(parId) ?? [];
+      const parChildren = outEdges.get(parId) ?? EMPTY_ARRAY;
       const parResultId = parChildren.find(cid => {
         if (toRemove.has(cid)) return false;
         const child = nodeMap.get(cid);
@@ -436,7 +437,7 @@ export function layoutGraph<T extends {
       const id = stack.pop()!;
       if (componentOf.has(id)) continue;
       componentOf.set(id, comp);
-      for (const nb of [...(outEdges.get(id) ?? []), ...(inEdges.get(id) ?? [])]) {
+      for (const nb of [...(outEdges.get(id) ?? EMPTY_ARRAY), ...(inEdges.get(id) ?? EMPTY_ARRAY)]) {
         if (!componentOf.has(nb)) stack.push(nb);
       }
     }
@@ -464,7 +465,7 @@ export function layoutGraph<T extends {
   const queued = new Set<string>();
   const subagentEdgeKeys = new Set<string>();
 
-  const primaryRoots = primaryNodes.filter(n => (inEdges.get(n.id) ?? []).length === 0);
+  const primaryRoots = primaryNodes.filter(n => (inEdges.get(n.id) ?? EMPTY_ARRAY).length === 0);
   const queue: Array<{ id: string; lane: number }> = [];
   for (const r of primaryRoots) {
     queue.push({ id: r.id, lane: 0 });
@@ -479,7 +480,7 @@ export function layoutGraph<T extends {
     nodeLane.set(id, lane);
     const node = nodeMap.get(id);
     const isTask = node?.type === 'taskNode';
-    for (const childId of outEdges.get(id) ?? []) {
+    for (const childId of outEdges.get(id) ?? EMPTY_ARRAY) {
       if (queued.has(childId)) continue;
       queued.add(childId);
       const childNode = nodeMap.get(childId);
@@ -500,14 +501,14 @@ export function layoutGraph<T extends {
   const topoOrder: string[] = [];
   const topoVisited = new Set<string>();
   const dfsStack = primaryNodes
-    .filter(n => (inEdges.get(n.id) ?? []).length === 0)
+    .filter(n => (inEdges.get(n.id) ?? EMPTY_ARRAY).length === 0)
     .map(n => n.id);
   while (dfsStack.length > 0) {
     const id = dfsStack.pop()!;
     if (topoVisited.has(id)) continue;
     topoVisited.add(id);
     topoOrder.push(id);
-    const children = (outEdges.get(id) ?? []).filter(c => primaryIdSet.has(c) && !topoVisited.has(c));
+    const children = (outEdges.get(id) ?? EMPTY_ARRAY).filter(c => primaryIdSet.has(c) && !topoVisited.has(c));
     const continuationChildren = children.filter(c => !subagentEdgeKeys.has(`${id}->${c}`));
     const subagentChildren = children.filter(c => subagentEdgeKeys.has(`${id}->${c}`));
     for (const c of [...continuationChildren].reverse()) dfsStack.push(c);
@@ -529,7 +530,7 @@ export function layoutGraph<T extends {
   for (const id of topoOrder) {
     const lane = nodeLane.get(id) ?? 0;
 
-    for (const parentId of inEdges.get(id) ?? []) {
+    for (const parentId of inEdges.get(id) ?? EMPTY_ARRAY) {
       if (!nodeY.has(parentId)) continue;
       if ((nodeLane.get(parentId) ?? 0) === lane) continue;
       const parentBottom = nodeY.get(parentId)! + (nodeHeightMap.get(parentId) ?? NODE_HEIGHT) + NODE_GAP;
@@ -567,7 +568,7 @@ export function layoutGraph<T extends {
 
   for (const [, compNodes] of sortedSecondary) {
     const compLane = nextSecondaryLane++;
-    const compRoots = compNodes.filter(n => (inEdges.get(n.id) ?? []).length === 0);
+    const compRoots = compNodes.filter(n => (inEdges.get(n.id) ?? EMPTY_ARRAY).length === 0);
     const visited = new Set<string>();
     const order: string[] = [];
     const bfsQ = compRoots.map(n => n.id);
@@ -579,7 +580,7 @@ export function layoutGraph<T extends {
       if (visited.has(id)) continue;
       visited.add(id);
       order.push(id);
-      for (const childId of outEdges.get(id) ?? []) {
+      for (const childId of outEdges.get(id) ?? EMPTY_ARRAY) {
         if (!visited.has(childId)) bfsQ.push(childId);
       }
     }

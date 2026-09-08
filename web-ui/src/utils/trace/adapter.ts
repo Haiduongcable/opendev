@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY } from "../../constants/common";
 /**
  * Adapter: transforms OpenDev ChatMessage JSONL records into the TraceEvent shape
  * that the graph algorithms (buildGraph / collapseGraph) expect.
@@ -74,7 +75,7 @@ export function adaptOpenDevMessages(
       }
 
       // Add tool_use blocks for each tool call
-      const toolCalls = msg.tool_calls ?? [];
+      const toolCalls = msg.tool_calls ?? EMPTY_ARRAY;
       for (const tc of toolCalls) {
         contentBlocks.push({
           type: 'tool_use',
