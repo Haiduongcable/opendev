@@ -90,3 +90,6 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
+## 2026-09-12 - Prevent Zustand Selector Unnecessary Re-renders
+**Learning:** Using `[\]` (inline empty arrays) as fallback values inside Zustand selectors (like `useStore(state => state.property ?? [])`) causes unnecessary component re-renders because a new array reference is returned every time. This can cause significant performance degradation when stores update frequently.
+**Action:** Created `EMPTY_ARRAY` constant (`Object.freeze([]) as never[]`) in a constants file and used it as the fallback to guarantee referential equality across state updates.
