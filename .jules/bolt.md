@@ -90,3 +90,7 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
+
+## 2024-08-04 - Replacing std::fs with tokio::fs in memory_consolidation.rs completely
+**Learning:** Calling `std::fs` inside async loops for file iteration or configuration loading introduces hidden blocking on the thread pool. The previous memory consolidation `std::fs` migration only covered simple mutations, missing key iterative patterns in helpers.
+**Action:** Always migrate directory loops (`std::fs::read_dir`) to `tokio::fs::read_dir().await` and replace its loop condition to gracefully handle futures with `.next_entry().await`. Use async file I/O equivalents to avoid blocking on startup and inside large collection updates.
