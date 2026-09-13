@@ -1,7 +1,7 @@
 use super::*;
 
-#[test]
-fn test_runtime_creation() {
+#[tokio::test]
+async fn test_runtime_creation() {
     let tmp = tempfile::tempdir().unwrap();
     let session_dir = tmp.path().join("sessions");
     std::fs::create_dir_all(&session_dir).unwrap();
@@ -29,8 +29,8 @@ fn test_runtime_creation() {
     );
 }
 
-#[test]
-fn test_runtime_debug_format() {
+#[tokio::test]
+async fn test_runtime_debug_format() {
     let tmp = tempfile::tempdir().unwrap();
     let session_dir = tmp.path().join("sessions");
     std::fs::create_dir_all(&session_dir).unwrap();
