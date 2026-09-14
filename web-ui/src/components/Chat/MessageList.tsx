@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useChatStore } from '../../stores/chat';
+import { EMPTY_ARRAY } from '../../constants/common';
 import { WelcomeScreen } from './WelcomeScreen';
 import { ProgressIndicator } from './ProgressIndicator';
 import { MessageItem } from './MessageItem';
 
 export function MessageList() {
+  // ⚡ Bolt Performance Optimization:
+  // Using a stable EMPTY_ARRAY reference instead of `[]` in Zustand selectors
+  // prevents unnecessary component re-renders when the array is empty.
   const messages = useChatStore(state => {
     const sid = state.currentSessionId;
-    return sid ? state.sessionStates[sid]?.messages ?? [] : [];
+    return sid ? state.sessionStates[sid]?.messages ?? EMPTY_ARRAY : EMPTY_ARRAY;
   });
   const isLoading = useChatStore(state => {
     const sid = state.currentSessionId;

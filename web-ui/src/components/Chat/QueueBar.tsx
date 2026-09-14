@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { useChatStore } from '../../stores/chat';
+import { EMPTY_ARRAY } from '../../constants/common';
 
 export function QueueBar() {
   const [expanded, setExpanded] = useState(false);
 
+  // ⚡ Bolt Performance Optimization:
+  // Using a stable EMPTY_ARRAY reference instead of `[]` in Zustand selectors
+  // prevents unnecessary component re-renders when the array is empty.
   const queuedMessages = useChatStore(state => {
     const sid = state.currentSessionId;
-    return sid ? state.sessionStates[sid]?.queuedMessages ?? [] : [];
+    return sid ? state.sessionStates[sid]?.queuedMessages ?? EMPTY_ARRAY : EMPTY_ARRAY;
   });
 
   if (queuedMessages.length === 0) return null;
