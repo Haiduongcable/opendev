@@ -7,7 +7,8 @@ export function QueueBar() {
 
   const queuedMessages = useChatStore(state => {
     const sid = state.currentSessionId;
-    return sid ? state.sessionStates[sid]?.queuedMessages ?? EMPTY_ARRAY : EMPTY_ARRAY;
+    // Optimization: returning a stable empty array reference prevents unnecessary re-renders
+    return sid ? state.sessionStates[sid]?.queuedMessages ?? (EMPTY_ARRAY as any as string[]) : (EMPTY_ARRAY as any as string[]);
   });
 
   if (queuedMessages.length === 0) return null;
