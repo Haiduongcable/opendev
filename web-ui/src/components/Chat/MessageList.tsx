@@ -3,11 +3,15 @@ import { useChatStore } from '../../stores/chat';
 import { WelcomeScreen } from './WelcomeScreen';
 import { ProgressIndicator } from './ProgressIndicator';
 import { MessageItem } from './MessageItem';
+import { EMPTY_ARRAY } from '../../constants/common';
+
+import type { Message } from '../../types';
 
 export function MessageList() {
   const messages = useChatStore(state => {
     const sid = state.currentSessionId;
-    return sid ? state.sessionStates[sid]?.messages ?? [] : [];
+    // Optimization: returning a stable empty array reference prevents unnecessary re-renders
+    return sid ? state.sessionStates[sid]?.messages ?? (EMPTY_ARRAY as any as Message[]) : (EMPTY_ARRAY as any as Message[]);
   });
   const isLoading = useChatStore(state => {
     const sid = state.currentSessionId;
