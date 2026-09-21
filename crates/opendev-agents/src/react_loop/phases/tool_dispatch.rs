@@ -96,7 +96,7 @@ where
             play_finish_sound();
             let mut result = AgentResult::ok(display_text, messages.clone());
             result.completion_status = Some(status);
-            return Some(LoopAction::Return(Ok(result)));
+            return Some(LoopAction::Return(Box::new(Ok(result))));
         }
 
         let tool_name = tc
@@ -522,9 +522,9 @@ where
             }));
             iter_metrics.total_duration_ms = iter_start.elapsed().as_millis() as u64;
             react_loop.push_metrics(iter_metrics.clone());
-            return Some(LoopAction::Return(Ok(AgentResult::backgrounded(
+            return Some(LoopAction::Return(Box::new(Ok(AgentResult::backgrounded(
                 messages.clone(),
-            ))));
+            )))));
         }
         emitter.emit_tool_finished(tool_call_id_str, tool_result.success);
 
@@ -713,9 +713,9 @@ where
                 );
                 iter_metrics.total_duration_ms = iter_start.elapsed().as_millis() as u64;
                 react_loop.push_metrics(iter_metrics.clone());
-                return Some(LoopAction::Return(Ok(AgentResult::backgrounded(
+                return Some(LoopAction::Return(Box::new(Ok(AgentResult::backgrounded(
                     messages.clone(),
-                ))));
+                )))));
             }
 
             // Append stub results for remaining unexecuted tool calls
@@ -754,7 +754,7 @@ where
             if !partial_content.is_empty() {
                 result.content = format!("Task interrupted by user (partial): {}", partial_content);
             }
-            return Some(LoopAction::Return(Ok(result)));
+            return Some(LoopAction::Return(Box::new(Ok(result))));
         }
 
         // Check for background request between sequential tool executions
@@ -765,9 +765,9 @@ where
             );
             iter_metrics.total_duration_ms = iter_start.elapsed().as_millis() as u64;
             react_loop.push_metrics(iter_metrics.clone());
-            return Some(LoopAction::Return(Ok(AgentResult::backgrounded(
+            return Some(LoopAction::Return(Box::new(Ok(AgentResult::backgrounded(
                 messages.clone(),
-            ))));
+            )))));
         }
     }
 
@@ -1006,9 +1006,9 @@ where
                 );
                 iter_metrics.total_duration_ms = iter_start.elapsed().as_millis() as u64;
                 react_loop.push_metrics(iter_metrics.clone());
-                return Some(LoopAction::Return(Ok(AgentResult::backgrounded(
+                return Some(LoopAction::Return(Box::new(Ok(AgentResult::backgrounded(
                     messages.clone(),
-                ))));
+                )))));
             }
 
             // Stub remaining tool calls
@@ -1037,7 +1037,7 @@ where
             react_loop.push_metrics(iter_metrics.clone());
             let mut result = AgentResult::interrupted(messages.clone());
             result.partial_result = Some(partial);
-            return Some(LoopAction::Return(Ok(result)));
+            return Some(LoopAction::Return(Box::new(Ok(result))));
         }
 
         if batch.len() == 1 {

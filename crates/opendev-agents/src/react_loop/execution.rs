@@ -233,7 +233,7 @@ impl ReactLoop {
             {
                 Ok(result) => result,
                 Err(super::types::LoopAction::Continue) => continue,
-                Err(super::types::LoopAction::Return(result)) => return result,
+                Err(super::types::LoopAction::Return(result)) => return *result,
             };
             let super::phases::LlmCallResult {
                 body,
@@ -302,7 +302,7 @@ impl ReactLoop {
                         event_callback,
                     ) {
                         super::types::LoopAction::Continue => continue,
-                        super::types::LoopAction::Return(result) => return result,
+                        super::types::LoopAction::Return(result) => return *result,
                     }
                 }
                 TurnResult::ToolCall { tool_calls } => {
@@ -365,7 +365,7 @@ impl ReactLoop {
                     {
                         match action {
                             super::types::LoopAction::Continue => continue,
-                            super::types::LoopAction::Return(result) => return result,
+                            super::types::LoopAction::Return(result) => return *result,
                         }
                     }
 
@@ -392,7 +392,7 @@ impl ReactLoop {
                     {
                         match action {
                             super::types::LoopAction::Continue => continue,
-                            super::types::LoopAction::Return(result) => return result,
+                            super::types::LoopAction::Return(result) => return *result,
                         }
                     }
 
@@ -419,7 +419,7 @@ impl ReactLoop {
                     {
                         match action {
                             super::types::LoopAction::Continue => continue,
-                            super::types::LoopAction::Return(result) => return result,
+                            super::types::LoopAction::Return(result) => return *result,
                         }
                     }
                 }

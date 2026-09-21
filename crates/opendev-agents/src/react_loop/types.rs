@@ -93,5 +93,5 @@ pub(super) enum LoopAction {
     /// Continue to the next iteration of the main loop.
     Continue,
     /// Return this result from `run_inner`.
-    Return(Result<AgentResult, AgentError>),
+    Return(Box<Result<AgentResult, AgentError>>),
 }
