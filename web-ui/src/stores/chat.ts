@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { EMPTY_ARRAY } from '../constants/common';
 import type { Message, ApprovalRequest, StatusInfo, AskUserRequest, PlanApprovalRequest, PerSessionState, ToolCallInfo } from '../types';
 import { apiClient } from '../api/client';
 import { wsClient } from '../api/websocket';
@@ -7,14 +8,14 @@ import { useToastStore } from './toast';
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 const DEFAULT_SESSION: PerSessionState = {
-  messages: [],
+  messages: EMPTY_ARRAY,
   isLoading: false,
   error: null,
   pendingApproval: null,
   pendingAskUser: null,
   pendingPlanApproval: null,
   progressMessage: null,
-  queuedMessages: [],
+  queuedMessages: EMPTY_ARRAY,
   optimisticMessages: new Map(),
 };
 
@@ -279,7 +280,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       await apiClient.clearChat();
       if (sessionId) {
         set(state => ({
-          ...patchSession(state, sessionId, { messages: [], error: null }),
+          ...patchSession(state, sessionId, { messages: EMPTY_ARRAY, error: null }),
         }));
       }
     } catch (error) {
@@ -570,7 +571,7 @@ wsClient.on('message_complete', (message) => {
   if (!sid) return;
   console.log('[Frontend] Received message_complete');
   useChatStore.setState(state => ({
-    ...patchSession(state, sid, { isLoading: false, queuedMessages: [] }),
+    ...patchSession(state, sid, { isLoading: false, queuedMessages: EMPTY_ARRAY }),
   }));
 });
 
@@ -838,7 +839,7 @@ wsClient.on('full_sync', () => {
   console.log('[Frontend] Received full_sync, reloading session from REST');
   // Clear cached messages so loadSession fetches fresh data from the server
   useChatStore.setState(state => ({
-    ...patchSession(state, sessionId, { messages: [] }),
+    ...patchSession(state, sessionId, { messages: EMPTY_ARRAY }),
   }));
   useChatStore.getState().loadSession(sessionId);
 });
