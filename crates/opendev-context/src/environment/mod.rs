@@ -230,7 +230,7 @@ impl EnvironmentContext {
         let mut sections = Vec::new();
 
         // Environment section
-        let mut env_lines = vec![format!("# Environment")];
+        let mut env_lines = vec!["# Environment".to_string()];
         if !self.working_dir.is_empty() {
             env_lines.push(format!("- Working directory: {}", self.working_dir));
         }
