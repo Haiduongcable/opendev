@@ -3,11 +3,16 @@ import { useChatStore } from '../../stores/chat';
 import { WelcomeScreen } from './WelcomeScreen';
 import { ProgressIndicator } from './ProgressIndicator';
 import { MessageItem } from './MessageItem';
+import { EMPTY_ARRAY } from '../../constants/common';
 
 export function MessageList() {
+    // ⚡ Bolt Performance Optimization:
+  // Using a stable EMPTY_ARRAY reference instead of returning a new [] array literal in the fallback.
+  // This avoids breaking strict equality checks and eliminates continuous unnecessary re-renders
+  // for the entire MessageList component whenever any unrelated state in the chat store changes.
   const messages = useChatStore(state => {
     const sid = state.currentSessionId;
-    return sid ? state.sessionStates[sid]?.messages ?? [] : [];
+    return sid ? state.sessionStates[sid]?.messages ?? EMPTY_ARRAY : EMPTY_ARRAY;
   });
   const isLoading = useChatStore(state => {
     const sid = state.currentSessionId;
