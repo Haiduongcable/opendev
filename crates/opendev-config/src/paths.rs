@@ -91,7 +91,7 @@ impl Paths {
                 config_dir: base.clone(),
                 data_dir: base.clone(),
                 cache_dir: base.join(CACHE_DIR_NAME),
-                state_dir: base,
+                state_dir: base.clone(),
             };
         }
 
@@ -130,7 +130,7 @@ impl Paths {
                 config_dir: base.clone(),
                 data_dir: base.clone(),
                 cache_dir: base.join(CACHE_DIR_NAME),
-                state_dir: base,
+                state_dir: base.clone(),
             }
         }
     }
