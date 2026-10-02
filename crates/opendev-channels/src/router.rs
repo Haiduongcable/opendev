@@ -3,7 +3,7 @@
 //! Routes inbound messages from channels (CLI, web, Telegram, etc.) to
 //! sessions and dispatches responses back to the correct channel/user.
 
-use async_trait::async_trait;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -62,7 +62,8 @@ pub struct OutboundMessage {
 pub type DeliveryContext = HashMap<String, serde_json::Value>;
 
 /// Trait for channel adapters that can send/receive messages.
-#[async_trait]
+#[async_trait::async_trait]
+#[allow(clippy::double_must_use)]
 pub trait ChannelAdapter: Send + Sync {
     /// Get the channel name (e.g., "telegram", "web", "cli").
     fn channel_name(&self) -> &str;
@@ -78,7 +79,8 @@ pub trait ChannelAdapter: Send + Sync {
 /// Callback type for agent execution.
 ///
 /// Takes (session_id, message_text) and returns agent response text.
-#[async_trait]
+#[async_trait::async_trait]
+#[allow(clippy::double_must_use)]
 pub trait AgentExecutor: Send + Sync {
     async fn execute(&self, session_id: &str, message_text: &str) -> ChannelResult<String>;
 
