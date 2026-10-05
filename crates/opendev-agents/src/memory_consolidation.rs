@@ -40,7 +40,7 @@ pub struct ConsolidationReport {
 }
 
 /// Check whether consolidation should run.
-pub async fn should_consolidate(working_dir: &Path) -> bool {
+pub fn should_consolidate(working_dir: &Path) -> bool {
     let paths = opendev_config::paths::Paths::new(Some(working_dir.to_path_buf()));
     let memory_dir = paths.project_memory_dir();
 
@@ -57,7 +57,7 @@ pub async fn should_consolidate(working_dir: &Path) -> bool {
 
     // Check time since last run
     let meta_path = paths.consolidation_meta_path();
-    let meta = load_meta(&meta_path).await;
+    let meta = load_meta(&meta_path);
     if let Some(ref last_run) = meta.last_run
         && let Ok(last_time) = chrono::DateTime::parse_from_rfc3339(last_run)
     {
@@ -72,7 +72,7 @@ pub async fn should_consolidate(working_dir: &Path) -> bool {
     }
 
     // Count session files
-    let session_count = count_session_files(&memory_dir).await;
+    let session_count = count_session_files(&memory_dir);
     if session_count < MIN_SESSION_FILES {
         debug!(
             "Only {session_count} session files (need {MIN_SESSION_FILES}), skipping consolidation"
@@ -95,13 +95,13 @@ pub async fn consolidate(working_dir: &Path) -> Option<ConsolidationReport> {
     let backup_dir = paths.memory_backup_dir();
 
     // Acquire lock
-    let mut open_opts = tokio::fs::OpenOptions::new();
+    let mut open_opts = std::fs::OpenOptions::new();
     open_opts.write(true).create_new(true);
 
-    let lock_result = match open_opts.open(&lock_path).await {
-        Ok(mut f) => tokio::io::AsyncWriteExt::write_all(&mut f, b"locked").await,
-        Err(e) => Err(e),
-    };
+    let lock_result = open_opts.open(&lock_path).and_then(|mut f| {
+        use std::io::Write;
+        f.write_all(b"locked")
+    });
 
     if let Err(e) = lock_result {
         warn!("Failed to acquire consolidation lock: {e}");
@@ -111,22 +111,22 @@ pub async fn consolidate(working_dir: &Path) -> Option<ConsolidationReport> {
     let result = run_consolidation(&memory_dir, &backup_dir).await;
 
     // Update meta
-    let mut meta = load_meta(&meta_path).await;
+    let mut meta = load_meta(&meta_path);
     meta.last_run = Some(chrono::Utc::now().to_rfc3339());
     if let Some(ref report) = result {
         meta.files_processed = report.files_consolidated;
     }
-    save_meta(&meta_path, &meta).await;
+    save_meta(&meta_path, &meta);
 
     // Release lock
-    let _ = tokio::fs::remove_file(&lock_path).await;
+    let _ = std::fs::remove_file(&lock_path);
 
     result
 }
 
 async fn run_consolidation(memory_dir: &Path, backup_dir: &Path) -> Option<ConsolidationReport> {
     // Phase 1: Orient — collect all memory files
-    let all_files = scan_all_memory_files(memory_dir).await;
+    let all_files = scan_all_memory_files(memory_dir);
     let session_files: Vec<&MemoryFile> = all_files
         .iter()
         .filter(|f| f.file_type == "session")
@@ -201,26 +201,17 @@ async fn run_consolidation(memory_dir: &Path, backup_dir: &Path) -> Option<Conso
         #[cfg(unix)]
         {
             use std::os::unix::fs::OpenOptionsExt;
-            let mut std_opts = std::fs::OpenOptions::new();
-            std_opts.write(true).create_new(true).mode(0o600);
-            let opts = tokio::fs::OpenOptions::from(std_opts);
-            match opts.open(&tmp_path).await {
-                Ok(mut f) => {
-                    tokio::io::AsyncWriteExt::write_all(&mut f, full_content.as_bytes()).await
-                }
-                Err(e) => Err(e),
-            }
+            let mut opts = std::fs::OpenOptions::new();
+            opts.write(true).create_new(true).mode(0o600);
+            opts.open(&tmp_path)
+                .and_then(|mut f| std::io::Write::write_all(&mut f, full_content.as_bytes()))
         }
         #[cfg(not(unix))]
         {
-            let mut opts = tokio::fs::OpenOptions::new();
+            let mut opts = std::fs::OpenOptions::new();
             opts.write(true).create_new(true);
-            match opts.open(&tmp_path).await {
-                Ok(mut f) => {
-                    tokio::io::AsyncWriteExt::write_all(&mut f, full_content.as_bytes()).await
-                }
-                Err(e) => Err(e),
-            }
+            opts.open(&tmp_path)
+                .and_then(|mut f| std::io::Write::write_all(&mut f, full_content.as_bytes()))
         }
     };
 
@@ -249,7 +240,7 @@ async fn run_consolidation(memory_dir: &Path, backup_dir: &Path) -> Option<Conso
     }
 
     // Update MEMORY.md index
-    let _ = regenerate_index(memory_dir).await;
+    let _ = regenerate_index(memory_dir);
 
     info!(
         "Consolidation complete: {} files merged, {} pruned, {} backed up",
@@ -310,20 +301,16 @@ struct MemoryFile {
     modified: SystemTime,
 }
 
-async fn scan_all_memory_files(dir: &Path) -> Vec<MemoryFile> {
-    let mut read_dir = match tokio::fs::read_dir(dir).await {
+fn scan_all_memory_files(dir: &Path) -> Vec<MemoryFile> {
+    let read_dir = match std::fs::read_dir(dir) {
         Ok(rd) => rd,
         Err(_) => return Vec::new(),
     };
 
     let mut files = Vec::new();
-    while let Ok(Some(entry)) = read_dir.next_entry().await {
+    for entry in read_dir.flatten() {
         let path = entry.path();
-        let metadata = match entry.metadata().await {
-            Ok(m) => m,
-            Err(_) => continue,
-        };
-        if !metadata.is_file() {
+        if !path.is_file() {
             continue;
         }
         let filename = match path.file_name().and_then(|n| n.to_str()) {
@@ -331,9 +318,12 @@ async fn scan_all_memory_files(dir: &Path) -> Vec<MemoryFile> {
             _ => continue,
         };
 
-        let modified = metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH);
+        let modified = entry
+            .metadata()
+            .and_then(|m| m.modified())
+            .unwrap_or(SystemTime::UNIX_EPOCH);
 
-        let content = match tokio::fs::read_to_string(&path).await {
+        let content = match std::fs::read_to_string(&path) {
             Ok(c) => c,
             Err(_) => continue,
         };
@@ -375,51 +365,46 @@ fn parse_type_and_body(content: &str) -> (String, String) {
     (file_type, trimmed.to_string())
 }
 
-async fn count_session_files(dir: &Path) -> usize {
-    let mut read_dir = match tokio::fs::read_dir(dir).await {
+fn count_session_files(dir: &Path) -> usize {
+    let read_dir = match std::fs::read_dir(dir) {
         Ok(rd) => rd,
         Err(_) => return 0,
     };
 
-    let mut count = 0;
-    while let Ok(Some(entry)) = read_dir.next_entry().await {
-        let path = entry.path();
-        let metadata = match entry.metadata().await {
-            Ok(m) => m,
-            Err(_) => continue,
-        };
-        if !metadata.is_file() {
-            continue;
-        }
-        let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-        if !name.ends_with(".md") || name == "MEMORY.md" {
-            continue;
-        }
-        // Quick check: session files start with "session-"
-        if name.starts_with("session-") {
-            count += 1;
-            continue;
-        }
-        // Full check: read frontmatter for type: session
-        if let Ok(content) = tokio::fs::read_to_string(&path).await {
-            let (ft, _) = parse_type_and_body(&content);
-            if ft == "session" {
-                count += 1;
+    read_dir
+        .flatten()
+        .filter(|entry| {
+            let path = entry.path();
+            if !path.is_file() {
+                return false;
             }
-        }
-    }
-    count
+            let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+            if !name.ends_with(".md") || name == "MEMORY.md" {
+                return false;
+            }
+            // Quick check: session files start with "session-"
+            if name.starts_with("session-") {
+                return true;
+            }
+            // Full check: read frontmatter for type: session
+            if let Ok(content) = std::fs::read_to_string(path) {
+                let (ft, _) = parse_type_and_body(&content);
+                ft == "session"
+            } else {
+                false
+            }
+        })
+        .count()
 }
 
-async fn load_meta(path: &Path) -> ConsolidationMeta {
-    tokio::fs::read_to_string(path)
-        .await
+fn load_meta(path: &Path) -> ConsolidationMeta {
+    std::fs::read_to_string(path)
         .ok()
         .and_then(|s| serde_json::from_str(&s).ok())
         .unwrap_or_default()
 }
 
-async fn save_meta(path: &Path, meta: &ConsolidationMeta) {
+fn save_meta(path: &Path, meta: &ConsolidationMeta) {
     if let Ok(json) = serde_json::to_string_pretty(meta) {
         let tmp_path = path.with_file_name(format!(
             ".{}.tmp.{}",
@@ -431,44 +416,35 @@ async fn save_meta(path: &Path, meta: &ConsolidationMeta) {
             #[cfg(unix)]
             {
                 use std::os::unix::fs::OpenOptionsExt;
-                let mut std_opts = std::fs::OpenOptions::new();
-                std_opts.write(true).create_new(true).mode(0o600);
-                let opts = tokio::fs::OpenOptions::from(std_opts);
-                match opts.open(&tmp_path).await {
-                    Ok(mut f) => tokio::io::AsyncWriteExt::write_all(&mut f, json.as_bytes()).await,
-                    Err(e) => Err(e),
-                }
+                let mut opts = std::fs::OpenOptions::new();
+                opts.write(true).create_new(true).mode(0o600);
+                opts.open(&tmp_path)
+                    .and_then(|mut f| std::io::Write::write_all(&mut f, json.as_bytes()))
             }
             #[cfg(not(unix))]
             {
-                let mut opts = tokio::fs::OpenOptions::new();
+                let mut opts = std::fs::OpenOptions::new();
                 opts.write(true).create_new(true);
-                match opts.open(&tmp_path).await {
-                    Ok(mut f) => tokio::io::AsyncWriteExt::write_all(&mut f, json.as_bytes()).await,
-                    Err(e) => Err(e),
-                }
+                opts.open(&tmp_path)
+                    .and_then(|mut f| std::io::Write::write_all(&mut f, json.as_bytes()))
             }
         };
 
         if write_result.is_ok() {
-            let _ = tokio::fs::rename(&tmp_path, path).await;
+            let _ = std::fs::rename(&tmp_path, path);
         } else {
-            let _ = tokio::fs::remove_file(&tmp_path).await;
+            let _ = std::fs::remove_file(&tmp_path);
         }
     }
 }
 
-async fn regenerate_index(dir: &Path) -> std::io::Result<()> {
-    let mut entries = tokio::fs::read_dir(dir).await?;
+fn regenerate_index(dir: &Path) -> std::io::Result<()> {
+    let entries = std::fs::read_dir(dir)?;
     let mut files: Vec<(String, String)> = Vec::new();
 
-    while let Ok(Some(entry)) = entries.next_entry().await {
+    for entry in entries.flatten() {
         let path = entry.path();
-        let metadata = match entry.metadata().await {
-            Ok(m) => m,
-            Err(_) => continue,
-        };
-        if !metadata.is_file() {
+        if !path.is_file() {
             continue;
         }
         let name = path
@@ -480,7 +456,7 @@ async fn regenerate_index(dir: &Path) -> std::io::Result<()> {
             continue;
         }
 
-        let content = tokio::fs::read_to_string(&path).await.unwrap_or_default();
+        let content = std::fs::read_to_string(&path).unwrap_or_default();
         let desc = extract_desc(&content);
         files.push((name, desc));
     }
@@ -510,22 +486,21 @@ async fn regenerate_index(dir: &Path) -> std::io::Result<()> {
         #[cfg(unix)]
         {
             use std::os::unix::fs::OpenOptionsExt;
-            let mut std_opts = std::fs::OpenOptions::new();
-            std_opts.write(true).create_new(true).mode(0o600);
-            let opts = tokio::fs::OpenOptions::from(std_opts);
-            let mut file = opts.open(&tmp_path).await?;
-            tokio::io::AsyncWriteExt::write_all(&mut file, final_content.as_bytes()).await?;
+            let mut opts = std::fs::OpenOptions::new();
+            opts.write(true).create_new(true).mode(0o600);
+            let mut file = opts.open(&tmp_path)?;
+            std::io::Write::write_all(&mut file, final_content.as_bytes())?;
         }
         #[cfg(not(unix))]
         {
-            let mut opts = tokio::fs::OpenOptions::new();
+            let mut opts = std::fs::OpenOptions::new();
             opts.write(true).create_new(true);
-            let mut file = opts.open(&tmp_path).await?;
-            tokio::io::AsyncWriteExt::write_all(&mut file, final_content.as_bytes()).await?;
+            let mut file = opts.open(&tmp_path)?;
+            std::io::Write::write_all(&mut file, final_content.as_bytes())?;
         }
     }
 
-    tokio::fs::rename(&tmp_path, &index_path).await?;
+    std::fs::rename(&tmp_path, &index_path)?;
     Ok(())
 }
 
