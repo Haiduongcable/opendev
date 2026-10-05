@@ -64,6 +64,7 @@ impl FileDiagnostic {
 /// for modified files. The file tools call this after successful writes
 /// to give the LLM immediate feedback about introduced errors.
 #[async_trait::async_trait]
+#[allow(clippy::double_must_use)]
 pub trait DiagnosticProvider: Send + Sync + std::fmt::Debug {
     /// Notify the provider that a file was modified and retrieve diagnostics.
     ///
@@ -412,6 +413,7 @@ pub struct ToolDisplayMeta {
 /// - Parameter schema (JSON Schema for LLM tool-use)
 /// - Async execution
 #[async_trait::async_trait]
+#[allow(clippy::double_must_use)]
 pub trait BaseTool: Send + Sync + std::fmt::Debug {
     /// Unique tool name used for dispatch.
     fn name(&self) -> &str;
