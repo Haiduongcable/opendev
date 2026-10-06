@@ -94,3 +94,7 @@
 ## 2024-10-06 - Prevent Unnecessary Re-renders from Zustand Selectors returning fallbacks
 **Learning:** Returning inline fallbacks like `?? []` or `|| []` inside `useStore(state => state.property ?? [])` creates a new array reference every time the store changes, overriding strict equality checks, and resulting in constant, unnecessary component re-renders. This is an extremely common React performance bottleneck when state management is global and changes frequently, such as in chat applications.
 **Action:** Always create a stable, globally frozen reference like `export const EMPTY_ARRAY: never[] = Object.freeze([]) as never[];` and use this instead inside Zustand selectors when the selected state evaluates to undefined.
+
+## 2024-10-06 - Prevent Unnecessary Re-renders from Zustand Selectors returning fallbacks
+**Learning:** Returning inline fallbacks like `?? []` or `|| []` inside `useStore(state => state.property ?? [])` creates a new array reference every time the store changes, overriding strict equality checks, and resulting in constant, unnecessary component re-renders. This is an extremely common React performance bottleneck when state management is global and changes frequently, such as in chat applications.
+**Action:** Always create a stable, globally frozen reference like `export const EMPTY_ARRAY: never[] = Object.freeze([]) as never[];` and use this instead inside Zustand selectors when the selected state evaluates to undefined.
