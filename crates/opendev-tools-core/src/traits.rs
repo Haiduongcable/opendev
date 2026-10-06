@@ -73,6 +73,7 @@ pub trait DiagnosticProvider: Send + Sync + std::fmt::Debug {
     ///
     /// Returns an empty vec if no diagnostics are available or if the
     /// language server doesn't support the file type.
+    #[allow(clippy::double_must_use)]
     async fn diagnostics_for_file(
         &self,
         file_path: &Path,
@@ -426,6 +427,7 @@ pub trait BaseTool: Send + Sync + std::fmt::Debug {
     fn parameter_schema(&self) -> serde_json::Value;
 
     /// Execute the tool with the given arguments and context.
+    #[allow(clippy::double_must_use)]
     async fn execute(
         &self,
         args: HashMap<String, serde_json::Value>,

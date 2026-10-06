@@ -63,6 +63,7 @@ pub type DeliveryContext = HashMap<String, serde_json::Value>;
 
 /// Trait for channel adapters that can send/receive messages.
 #[async_trait]
+#[allow(clippy::double_must_use)]
 pub trait ChannelAdapter: Send + Sync {
     /// Get the channel name (e.g., "telegram", "web", "cli").
     fn channel_name(&self) -> &str;
@@ -79,7 +80,9 @@ pub trait ChannelAdapter: Send + Sync {
 ///
 /// Takes (session_id, message_text) and returns agent response text.
 #[async_trait]
+#[allow(clippy::double_must_use)]
 pub trait AgentExecutor: Send + Sync {
+    #[allow(clippy::double_must_use)]
     async fn execute(&self, session_id: &str, message_text: &str) -> ChannelResult<String>;
 
     /// Execute with streaming — sends text chunks through the provided channel
