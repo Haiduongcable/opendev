@@ -15,6 +15,7 @@ use crate::traits::{ToolContext, ToolResult};
 #[async_trait::async_trait]
 pub trait ToolMiddleware: Send + Sync + std::fmt::Debug {
     /// Called before tool execution. Return `Err` to abort execution.
+    #[allow(clippy::double_must_use)]
     async fn before_execute(
         &self,
         name: &str,
@@ -23,6 +24,7 @@ pub trait ToolMiddleware: Send + Sync + std::fmt::Debug {
     ) -> Result<(), String>;
 
     /// Called after tool execution with the result.
+    #[allow(clippy::double_must_use)]
     async fn after_execute(&self, name: &str, result: &ToolResult) -> Result<(), String>;
 }
 

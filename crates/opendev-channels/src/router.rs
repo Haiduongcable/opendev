@@ -64,7 +64,6 @@ pub type DeliveryContext = HashMap<String, serde_json::Value>;
 /// Trait for channel adapters that can send/receive messages.
 #[async_trait]
 #[allow(clippy::double_must_use)]
-#[allow(clippy::double_must_use)]
 pub trait ChannelAdapter: Send + Sync {
     /// Get the channel name (e.g., "telegram", "web", "cli").
     fn channel_name(&self) -> &str;
