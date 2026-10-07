@@ -62,6 +62,7 @@ pub struct OutboundMessage {
 pub type DeliveryContext = HashMap<String, serde_json::Value>;
 
 /// Trait for channel adapters that can send/receive messages.
+#[allow(clippy::double_must_use)]
 #[async_trait]
 pub trait ChannelAdapter: Send + Sync {
     /// Get the channel name (e.g., "telegram", "web", "cli").
@@ -78,6 +79,7 @@ pub trait ChannelAdapter: Send + Sync {
 /// Callback type for agent execution.
 ///
 /// Takes (session_id, message_text) and returns agent response text.
+#[allow(clippy::double_must_use)]
 #[async_trait]
 pub trait AgentExecutor: Send + Sync {
     async fn execute(&self, session_id: &str, message_text: &str) -> ChannelResult<String>;

@@ -77,7 +77,11 @@ fn test_get_api_key_custom_provider_openai_env_fallback() {
             return;
         }
     }
-    assert!(config_no_key.get_api_key().is_err());
+    // Temporarily clear the environment variable for this assertion if it exists but is somehow being picked up differently
+    unsafe {
+        std::env::remove_var("OPENAI_API_KEY");
+    }
+    assert!(config_no_key.get_api_key().is_err(), "Expected error when no key is set and OPENAI_API_KEY is not available");
 }
 
 #[test]
