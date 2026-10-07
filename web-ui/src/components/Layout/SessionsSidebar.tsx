@@ -7,6 +7,7 @@ import { NewSessionModal } from './NewSessionModal';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { SessionModelModal } from './SessionModelModal';
 import { apiClient } from '../../api/client';
+import { EMPTY_ARRAY } from '../../constants/common';
 
 interface Session {
   id: string;
@@ -60,7 +61,7 @@ export function SessionsSidebar() {
 
   // Disable "New Chat" when the current session has no messages yet
   const currentSessionIsEmpty = currentSessionId !== null && (
-    (sessionStates[currentSessionId]?.messages ?? []).length === 0
+    (sessionStates[currentSessionId]?.messages ?? EMPTY_ARRAY).length === 0
   );
 
   // Per-workspace check: only disable "New Session" in the workspace
@@ -69,7 +70,7 @@ export function SessionsSidebar() {
     if (currentSessionId === null) return false;
     const isCurrentInWorkspace = workspace.sessions.some(s => s.id === currentSessionId);
     if (!isCurrentInWorkspace) return false;
-    return (sessionStates[currentSessionId]?.messages ?? []).length === 0;
+    return (sessionStates[currentSessionId]?.messages ?? EMPTY_ARRAY).length === 0;
   };
 
   useEffect(() => {
