@@ -13,6 +13,7 @@ use crate::traits::{ToolContext, ToolResult};
 /// observe results after execution. If `before_execute` returns an error,
 /// the tool is not executed and the error is returned as a failed `ToolResult`.
 #[async_trait::async_trait]
+#[allow(clippy::double_must_use)]
 pub trait ToolMiddleware: Send + Sync + std::fmt::Debug {
     /// Called before tool execution. Return `Err` to abort execution.
     async fn before_execute(
