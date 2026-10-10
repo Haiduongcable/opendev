@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useChatStore } from '../../stores/chat';
-import { EMPTY_ARRAY } from '../../constants/common';
 
 export function QueueBar() {
   const [expanded, setExpanded] = useState(false);
 
   const queuedMessages = useChatStore(state => {
     const sid = state.currentSessionId;
-    return sid ? state.sessionStates[sid]?.queuedMessages ?? EMPTY_ARRAY : EMPTY_ARRAY;
+    return sid ? state.sessionStates[sid]?.queuedMessages ?? [] : [];
   });
 
   if (queuedMessages.length === 0) return null;
