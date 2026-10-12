@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { wsClient } from '../api/websocket';
+import { EMPTY_ARRAY } from '../constants/common';
 
 export interface TodoItem {
   id: string;
@@ -17,7 +18,7 @@ interface TodoStore {
 }
 
 export const useTodoStore = create<TodoStore>((set) => ({
-  items: [],
+  items: EMPTY_ARRAY,
   planName: null,
   visible: true,
   setItems: (items, planName) => set({ items, planName: planName ?? null }),
