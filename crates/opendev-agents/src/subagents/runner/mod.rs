@@ -61,6 +61,7 @@ fn inject_mailbox_messages(msgs: Vec<opendev_runtime::MailboxMessage>, messages:
 
 /// Trait for react loop strategies.
 #[async_trait]
+#[allow(clippy::double_must_use)]
 pub trait SubagentRunner: Send + Sync {
     /// Run the react loop over the given message history.
     async fn run(

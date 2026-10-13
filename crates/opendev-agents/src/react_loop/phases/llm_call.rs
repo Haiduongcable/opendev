@@ -51,7 +51,7 @@ pub(in crate::react_loop) async fn execute_llm_call<M>(
     debug_logger: Option<&SessionDebugLogger>,
     tool_registry: Option<&Arc<ToolRegistry>>,
     tool_context: Option<&ToolContext>,
-) -> Result<LlmCallResult, LoopAction>
+) -> Result<LlmCallResult, Box<LoopAction>>
 where
     M: TaskMonitor + ?Sized,
 {
@@ -156,13 +156,13 @@ where
                 iteration = state.iteration,
                 "Background requested during LLM call — yielding"
             );
-            return Err(LoopAction::Return(Ok(AgentResult::backgrounded(
+            return Err(Box::new(LoopAction::Return(Ok(AgentResult::backgrounded(
                 messages.clone(),
-            ))));
+            )))));
         }
-        return Err(LoopAction::Return(Ok(AgentResult::interrupted(
+        return Err(Box::new(LoopAction::Return(Ok(AgentResult::interrupted(
             messages.clone(),
-        ))));
+        )))));
     }
 
     // Handle HTTP failure
@@ -185,10 +185,12 @@ where
                     failures = state.consecutive_llm_failures,
                     "Giving up after repeated LLM call failures"
                 );
-                return Err(LoopAction::Return(Err(AgentError::LlmError(format!(
-                    "LLM request failed {} times in a row; giving up. Last error: {err_msg}. {}",
-                    state.consecutive_llm_failures,
-                    debug_hint(debug_logger)
+                return Err(Box::new(LoopAction::Return(Err(AgentError::LlmError(
+                    format!(
+                        "LLM request failed {} times in a row; giving up. Last error: {err_msg}. {}",
+                        state.consecutive_llm_failures,
+                        debug_hint(debug_logger)
+                    ),
                 )))));
             }
             // Back off before the next iteration. The lower HTTP layer can
@@ -200,11 +202,10 @@ where
             // for any other retryable failure.
             let backoff = retry_backoff_for(err_msg);
             tokio::time::sleep(backoff).await;
-            return Err(LoopAction::Continue);
+            return Err(Box::new(LoopAction::Continue));
         }
-        return Err(LoopAction::Return(Err(AgentError::LlmError(format!(
-            "{err_msg}. {}",
-            debug_hint(debug_logger)
+        return Err(Box::new(LoopAction::Return(Err(AgentError::LlmError(
+            format!("{err_msg}. {}", debug_hint(debug_logger)),
         )))));
     }
 
@@ -225,8 +226,8 @@ where
         if let Some(logger) = debug_logger {
             logger.log_llm_error(state.iteration, msg);
         }
-        return Err(LoopAction::Return(Err(AgentError::LlmError(format!(
-            "API error: {msg}"
+        return Err(Box::new(LoopAction::Return(Err(AgentError::LlmError(
+            format!("API error: {msg}"),
         )))));
     }
 

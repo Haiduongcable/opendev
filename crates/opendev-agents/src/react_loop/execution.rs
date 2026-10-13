@@ -232,8 +232,10 @@ impl ReactLoop {
             .await
             {
                 Ok(result) => result,
-                Err(super::types::LoopAction::Continue) => continue,
-                Err(super::types::LoopAction::Return(result)) => return result,
+                Err(box_action) => match *box_action {
+                    super::types::LoopAction::Continue => continue,
+                    super::types::LoopAction::Return(result) => return result,
+                },
             };
             let super::phases::LlmCallResult {
                 body,

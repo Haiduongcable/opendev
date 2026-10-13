@@ -184,6 +184,7 @@ impl LlmResponse {
 /// Python's mixin-based inheritance is replaced with composition — agents hold
 /// their dependencies as fields and implement this trait for the core contract.
 #[async_trait]
+#[allow(clippy::double_must_use)]
 pub trait BaseAgent: Send + Sync {
     /// Build the system prompt for downstream model calls.
     fn build_system_prompt(&self) -> String;
