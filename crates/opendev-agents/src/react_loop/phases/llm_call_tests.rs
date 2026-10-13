@@ -181,7 +181,7 @@ async fn run_call(client: &AdaptedClient, state: &mut LoopState) -> Result<(), O
     )
     .await
     .map(|_| ())
-    .map_err(Some)
+    .map_err(|b| Some(*b))
 }
 
 #[tokio::test]

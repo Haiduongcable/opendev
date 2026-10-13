@@ -57,6 +57,7 @@ pub struct Attachment {
 /// Use `CadenceGate` or atomics for mutable cadence state since the trait
 /// uses `&self`.
 #[async_trait::async_trait]
+#[allow(clippy::double_must_use)]
 pub trait ContextCollector: Send + Sync {
     /// Human-readable name for logging/debugging.
     fn name(&self) -> &'static str;
