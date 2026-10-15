@@ -24,6 +24,7 @@ use crate::models::{JsonRpcNotification, JsonRpcRequest, JsonRpcResponse};
 pub(super) const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Transport trait for communicating with MCP servers.
+#[allow(clippy::double_must_use)]
 #[async_trait]
 pub trait McpTransport: Send + Sync {
     /// Connect the transport (e.g., spawn child process).
