@@ -38,7 +38,7 @@ pub(in crate::react_loop) struct LlmCallResult {
 ///
 /// Returns `Ok(LlmCallResult)` on success, or `Err(LoopAction)` when the
 /// loop should continue (retryable) or return (interrupt/error).
-#[allow(clippy::too_many_arguments, clippy::ptr_arg)]
+#[allow(clippy::too_many_arguments, clippy::ptr_arg, clippy::result_large_err)]
 pub(in crate::react_loop) async fn execute_llm_call<M>(
     caller: &LlmCaller,
     http_client: &AdaptedClient,
