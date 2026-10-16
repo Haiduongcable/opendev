@@ -58,9 +58,14 @@ export function SessionsSidebar() {
   const isCollapsed = useChatStore(state => state.sidebarCollapsed);
   const toggleSidebar = useChatStore(state => state.toggleSidebar);
 
+  const currentSessionMessagesLength = useChatStore(state => {
+    const sid = state.currentSessionId;
+    return sid ? (state.sessionStates[sid]?.messages?.length ?? 0) : 0;
+  });
+
   // Disable "New Chat" when the current session has no messages yet
   const currentSessionIsEmpty = currentSessionId !== null && (
-    (sessionStates[currentSessionId]?.messages ?? []).length === 0
+    currentSessionMessagesLength === 0
   );
 
   // Per-workspace check: only disable "New Session" in the workspace
@@ -69,7 +74,7 @@ export function SessionsSidebar() {
     if (currentSessionId === null) return false;
     const isCurrentInWorkspace = workspace.sessions.some(s => s.id === currentSessionId);
     if (!isCurrentInWorkspace) return false;
-    return (sessionStates[currentSessionId]?.messages ?? []).length === 0;
+    return currentSessionMessagesLength === 0;
   };
 
   useEffect(() => {
