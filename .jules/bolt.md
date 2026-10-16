@@ -93,3 +93,6 @@
 ## 2024-10-16 - Zustand Stable Empty Array References
 **Learning:** Returning inline `[]` inside Zustand selectors (e.g., `useChatStore(state => state.messages ?? [])`) causes unnecessary React component re-renders because `[] !== []`, which breaks strict equality checks on every store update.
 **Action:** Use a globally stable reference like `EMPTY_ARRAY` (defined as `Object.freeze([])`) in Zustand selectors to prevent unnecessary re-renders.
+## 2024-10-16 - async-trait and clippy::double_must_use
+**Learning:** When applying `#[async_trait]` to a trait that has methods returning types inherently annotated with `#[must_use]` (such as `Result` or `ChannelResult`), clippy will complain with `clippy::double_must_use`.
+**Action:** Add `#[allow(clippy::double_must_use)]` directly above the `#[async_trait]` macro on the trait definition to suppress this warning.
