@@ -90,3 +90,9 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
+## 2024-10-16 - Zustand Stable Empty Array References
+**Learning:** Returning inline `[]` inside Zustand selectors (e.g., `useChatStore(state => state.messages ?? [])`) causes unnecessary React component re-renders because `[] !== []`, which breaks strict equality checks on every store update.
+**Action:** Use a globally stable reference like `EMPTY_ARRAY` (defined as `Object.freeze([])`) in Zustand selectors to prevent unnecessary re-renders.
+## 2024-10-16 - async-trait and clippy::double_must_use
+**Learning:** When applying `#[async_trait]` to a trait that has methods returning types inherently annotated with `#[must_use]` (such as `Result` or `ChannelResult`), clippy will complain with `clippy::double_must_use`.
+**Action:** Add `#[allow(clippy::double_must_use)]` directly above the `#[async_trait]` macro on the trait definition to suppress this warning.
