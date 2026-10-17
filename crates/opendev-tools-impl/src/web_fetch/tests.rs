@@ -79,5 +79,5 @@ async fn test_web_fetch_format_html_no_conversion() {
 fn test_timeout_constants() {
     assert_eq!(MAX_TIMEOUT_SECS, 120);
     assert_eq!(DEFAULT_TIMEOUT_SECS, 30);
-    assert!(DEFAULT_TIMEOUT_SECS <= MAX_TIMEOUT_SECS);
+    const { assert!(DEFAULT_TIMEOUT_SECS <= MAX_TIMEOUT_SECS) };
 }

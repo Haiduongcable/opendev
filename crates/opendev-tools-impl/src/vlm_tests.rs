@@ -63,7 +63,7 @@ async fn test_vlm_unsupported_provider() {
     let ctx = ToolContext::new(&dir_path);
 
     let img_path = dir_path.join("test_vlm.png");
-    std::fs::write(&img_path, &[0x89, 0x50, 0x4E, 0x47]).unwrap();
+    std::fs::write(&img_path, [0x89, 0x50, 0x4E, 0x47]).unwrap();
 
     let args = make_args(&[
         ("prompt", serde_json::json!("Describe")),
@@ -83,7 +83,7 @@ async fn test_vlm_anthropic_not_supported() {
     let ctx = ToolContext::new(&dir_path);
 
     let img_path = dir_path.join("test_vlm_anthropic.png");
-    std::fs::write(&img_path, &[0x89, 0x50, 0x4E, 0x47]).unwrap();
+    std::fs::write(&img_path, [0x89, 0x50, 0x4E, 0x47]).unwrap();
 
     let args = make_args(&[
         ("prompt", serde_json::json!("Describe")),
@@ -103,7 +103,7 @@ async fn test_vlm_no_api_key() {
     let ctx = ToolContext::new(&dir_path);
 
     let img_path = dir_path.join("test_vlm_nokey.png");
-    std::fs::write(&img_path, &[0x89, 0x50, 0x4E, 0x47]).unwrap();
+    std::fs::write(&img_path, [0x89, 0x50, 0x4E, 0x47]).unwrap();
 
     // Ensure no API key is set
     // SAFETY: test-only; ensures no API key interferes with the test.

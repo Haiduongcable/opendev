@@ -212,7 +212,7 @@ async fn test_invoke_skill_without_model_no_metadata() {
     args.insert("skill_name".to_string(), serde_json::json!("commit"));
     let result = tool.execute(args, &ctx).await;
     assert!(result.success);
-    assert!(result.metadata.get("skill_model").is_none());
+    assert!(!result.metadata.contains_key("skill_model"));
 }
 
 #[tokio::test]
@@ -244,7 +244,7 @@ async fn test_invoke_skill_without_agent_no_metadata() {
     args.insert("skill_name".to_string(), serde_json::json!("commit"));
     let result = tool.execute(args, &ctx).await;
     assert!(result.success);
-    assert!(result.metadata.get("skill_agent").is_none());
+    assert!(!result.metadata.contains_key("skill_agent"));
 }
 
 #[tokio::test]
@@ -259,7 +259,7 @@ async fn test_skill_output_wrapped_in_xml() {
     let output = result.output.unwrap();
     assert!(output.contains("<skill_content name=\"commit\">"));
     assert!(output.contains("</skill_content>"));
-    assert!(result.metadata.get("token_estimate").is_some());
+    assert!(result.metadata.contains_key("token_estimate"));
 }
 
 #[tokio::test]

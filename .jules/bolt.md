@@ -90,3 +90,9 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
+## 2025-02-28 - [Stable Array Reference in Zustand Selectors]
+**Learning:** [Returning a new object or array literal from a Zustand selector bypasses strict equality checks, causing unnecessary re-renders. When accessing state via zustand,  creates a new array reference () every render if  is undefined, forcing dependent components to re-render constantly.
+**Action:** [Use a stable reference like  as the fallback in Zustand selectors to prevent unnecessary re-renders. (e.g. ).]
+## 2025-02-28 - [Stable Array Reference in Zustand Selectors]
+**Learning:** [Returning a new object or array literal from a Zustand selector bypasses strict equality checks, causing unnecessary re-renders. When accessing state via zustand, `useChatStore(state => state.messages ?? [])` creates a new array reference (`[]`) every render if `state.messages` is undefined, forcing dependent components to re-render constantly.]
+**Action:** [Use a stable reference like `export const EMPTY_ARRAY: never[] = Object.freeze([]) as never[];` as the fallback in Zustand selectors to prevent unnecessary re-renders. (e.g. `useChatStore(state => state.messages ?? EMPTY_ARRAY)`).]

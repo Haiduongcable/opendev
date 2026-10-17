@@ -104,7 +104,7 @@ fn test_setup_error_variants() {
         SetupError::NoModel,
         SetupError::SaveFailed("test".into()),
         SetupError::RegistryError("test".into()),
-        SetupError::Io(io::Error::new(io::ErrorKind::Other, "test")),
+        SetupError::Io(io::Error::other("test")),
     ];
     assert_eq!(errors.len(), 8);
 }
