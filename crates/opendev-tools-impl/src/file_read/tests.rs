@@ -72,7 +72,7 @@ async fn test_read_binary_file() {
     let dir = tempfile::TempDir::new().unwrap();
     let dir_path = dir.path().canonicalize().unwrap();
     let file = dir_path.join("binary.bin");
-    std::fs::write(&file, &[0u8, 1, 2, 3, 0, 5]).unwrap();
+    std::fs::write(&file, [0u8, 1, 2, 3, 0, 5]).unwrap();
 
     let tool = FileReadTool;
     let ctx = ToolContext::new(&dir_path);
@@ -293,7 +293,7 @@ async fn test_read_no_next_offset_at_end() {
 
     assert!(result.success);
     // No next_offset when all lines are shown
-    assert!(result.metadata.get("next_offset").is_none());
+    assert!(!result.metadata.contains_key("next_offset"));
 }
 
 // ---- Output byte limit ----

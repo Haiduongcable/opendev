@@ -69,7 +69,7 @@ async fn send_request(
 #[tokio::test]
 async fn health_check_returns_ok() {
     let (_tmp, state) = make_test_state();
-    let (status, json) = send_request(state, Method::GET, "/api/health", None).await;
+    let (status, _json) = send_request(state, Method::GET, "/api/health", None).await;
 
     assert_eq!(status, StatusCode::OK);
     assert_eq!(json["status"], "ok");
@@ -84,7 +84,7 @@ async fn health_check_returns_ok() {
 #[tokio::test]
 async fn create_session() {
     let (_tmp, state) = make_test_state();
-    let (status, json) = send_request(
+    let (status, _json) = send_request(
         state,
         Method::POST,
         "/api/sessions",
@@ -101,7 +101,7 @@ async fn create_session() {
 #[tokio::test]
 async fn create_session_with_working_dir() {
     let (_tmp, state) = make_test_state();
-    let (status, json) = send_request(
+    let (status, _json) = send_request(
         state,
         Method::POST,
         "/api/sessions",
@@ -117,7 +117,7 @@ async fn create_session_with_working_dir() {
 #[tokio::test]
 async fn list_sessions_empty() {
     let (_tmp, state) = make_test_state();
-    let (status, json) = send_request(state, Method::GET, "/api/sessions", None).await;
+    let (status, _json) = send_request(state, Method::GET, "/api/sessions", None).await;
 
     assert_eq!(status, StatusCode::OK);
     assert!(json.as_array().is_some());
@@ -127,7 +127,7 @@ async fn list_sessions_empty() {
 /// List sessions returns created sessions.
 #[tokio::test]
 async fn list_sessions_after_create() {
-    let (tmp, state) = make_test_state();
+    let (_tmp, state) = make_test_state();
 
     // Manually save a session so it appears in the index
     {
@@ -137,7 +137,7 @@ async fn list_sessions_after_create() {
         mgr.save_current().unwrap();
     }
 
-    let (status, json) = send_request(state, Method::GET, "/api/sessions", None).await;
+    let (status, _json) = send_request(state, Method::GET, "/api/sessions", None).await;
     assert_eq!(status, StatusCode::OK);
     let sessions = json.as_array().unwrap();
     assert_eq!(sessions.len(), 1);
@@ -146,7 +146,7 @@ async fn list_sessions_after_create() {
 /// Get a specific session by ID.
 #[tokio::test]
 async fn get_session_by_id() {
-    let (tmp, state) = make_test_state();
+    let (_tmp, state) = make_test_state();
 
     // Save a session
     let session_id;
@@ -158,7 +158,7 @@ async fn get_session_by_id() {
         session_id = session.id;
     }
 
-    let (status, json) = send_request(
+    let (status, _json) = send_request(
         state,
         Method::GET,
         &format!("/api/sessions/{session_id}"),
@@ -174,7 +174,7 @@ async fn get_session_by_id() {
 #[tokio::test]
 async fn get_nonexistent_session_returns_404() {
     let (_tmp, state) = make_test_state();
-    let (status, json) = send_request(state, Method::GET, "/api/sessions/nonexistent", None).await;
+    let (status, _json) = send_request(state, Method::GET, "/api/sessions/nonexistent", None).await;
 
     assert_eq!(status, StatusCode::NOT_FOUND);
     assert!(json["error"].as_str().is_some());
@@ -183,7 +183,7 @@ async fn get_nonexistent_session_returns_404() {
 /// Resume a session.
 #[tokio::test]
 async fn resume_session() {
-    let (tmp, state) = make_test_state();
+    let (_tmp, state) = make_test_state();
 
     // Save a session
     {
@@ -193,7 +193,7 @@ async fn resume_session() {
         mgr.save_session(&session).unwrap();
     }
 
-    let (status, json) = send_request(
+    let (status, _json) = send_request(
         state,
         Method::POST,
         "/api/sessions/test-resume/resume",
@@ -228,7 +228,7 @@ async fn resume_nonexistent_session_returns_404() {
 #[tokio::test]
 async fn get_config() {
     let (_tmp, state) = make_test_state();
-    let (status, json) = send_request(state, Method::GET, "/api/config", None).await;
+    let (status, _json) = send_request(state, Method::GET, "/api/config", None).await;
 
     assert_eq!(status, StatusCode::OK);
     assert_eq!(json["model_provider"], "fireworks");
@@ -241,7 +241,7 @@ async fn get_config() {
 async fn update_config() {
     let (_tmp, state) = make_test_state();
 
-    let (status, json) = send_request(
+    let (status, _json) = send_request(
         state.clone(),
         Method::PUT,
         "/api/config",
@@ -257,7 +257,7 @@ async fn update_config() {
     assert_eq!(json["status"], "success");
 
     // Verify the config was updated
-    let (status, json) = send_request(state, Method::GET, "/api/config", None).await;
+    let (status, _json) = send_request(state, Method::GET, "/api/config", None).await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(json["model_provider"], "openai");
     assert_eq!(json["model"], "gpt-4o");
@@ -268,7 +268,7 @@ async fn update_config() {
 async fn set_mode() {
     let (_tmp, state) = make_test_state();
 
-    let (status, json) = send_request(
+    let (status, _json) = send_request(
         state.clone(),
         Method::POST,
         "/api/config/mode",
@@ -289,7 +289,7 @@ async fn set_mode() {
 async fn set_invalid_mode_returns_400() {
     let (_tmp, state) = make_test_state();
 
-    let (status, json) = send_request(
+    let (status, _json) = send_request(
         state,
         Method::POST,
         "/api/config/mode",
@@ -306,7 +306,7 @@ async fn set_invalid_mode_returns_400() {
 async fn set_autonomy_level() {
     let (_tmp, state) = make_test_state();
 
-    let (status, json) = send_request(
+    let (status, _json) = send_request(
         state.clone(),
         Method::POST,
         "/api/config/autonomy",

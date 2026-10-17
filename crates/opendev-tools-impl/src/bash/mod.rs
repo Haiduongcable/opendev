@@ -673,7 +673,7 @@ mod tests {
         let args = make_args(&[("command", serde_json::json!("echo hello"))]);
         let result = tool.execute(args, &ctx).await;
         assert!(result.success);
-        assert!(result.metadata.get("description").is_none());
+        assert!(!result.metadata.contains_key("description"));
     }
 
     // -----------------------------------------------------------------------
