@@ -98,3 +98,7 @@
 ## 2024-10-18 - Clippy double_must_use and async_trait
 **Learning:** Using `#[async_trait]` on traits returning types that are already `#[must_use]` (like `Result`) triggers `clippy::double_must_use` errors in CI when running `cargo clippy --workspace -- -D warnings`.
 **Action:** Always add `#[allow(clippy::double_must_use)]` to traits utilizing `#[async_trait]` if they return a `Result` or other `#[must_use]` type to prevent CI failures.
+
+## 2024-10-18 - Useless format macro invocation
+**Learning:** Calling `format!("...")` with a single string literal and no formatting arguments triggers the `clippy::useless_format` lint, which will fail CI builds that use `-D warnings`.
+**Action:** When a static string needs to be converted to an owned `String` in Rust, use `"...".to_string()` instead of `format!("...")` to keep code clean and pass clippy checks.

@@ -25,6 +25,7 @@ pub(super) const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Transport trait for communicating with MCP servers.
 #[async_trait]
+#[allow(clippy::double_must_use)]
 pub trait McpTransport: Send + Sync {
     /// Connect the transport (e.g., spawn child process).
     async fn connect(&mut self) -> McpResult<()>;
