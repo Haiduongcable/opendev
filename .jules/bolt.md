@@ -94,3 +94,7 @@
 ## 2024-10-18 - Stable Array References in Zustand Selectors
 **Learning:** Returning a new array reference `[]` (or inline object `{}`) from a Zustand selector bypasses React's strict equality checks (`Object.is`), causing the component to re-render unnecessarily every time the store updates, even if the array content hasn't changed.
 **Action:** Always use a stable reference like `export const EMPTY_ARRAY: never[] = Object.freeze([]) as never[];` instead of inline `[]` as fallback values in Zustand selectors.
+
+## 2024-10-18 - Clippy double_must_use and async_trait
+**Learning:** Using `#[async_trait]` on traits returning types that are already `#[must_use]` (like `Result`) triggers `clippy::double_must_use` errors in CI when running `cargo clippy --workspace -- -D warnings`.
+**Action:** Always add `#[allow(clippy::double_must_use)]` to traits utilizing `#[async_trait]` if they return a `Result` or other `#[must_use]` type to prevent CI failures.
