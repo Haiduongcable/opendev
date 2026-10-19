@@ -90,3 +90,7 @@
 ## 2024-08-03 - Replacing synchronous std::fs operations with tokio::fs in memory_consolidation.rs
 **Learning:** In `crates/opendev-agents/src/memory_consolidation.rs`, using synchronous `std::fs` operations (e.g., `create_dir_all`, `copy`, `remove_file`, `rename`) inside the async functions `consolidate` and `run_consolidation` blocks the async executor thread, degrading concurrent performance.
 **Action:** Replace `std::fs` calls within async functions with `tokio::fs` equivalents (e.g., `tokio::fs::create_dir_all(...).await`) to ensure non-blocking file I/O operations and improve overall application concurrency.
+
+## 2024-08-04 - Unnecessary Sync I/O Before Spawn
+**Learning:** Performing synchronous filesystem checks (like `should_consolidate` returning `true` based on `Path::exists`) on the main thread directly *before* an async `tokio::spawn` task creates a subtle but real startup delay for an async application. The whole purpose of the background task is defeated if we do the expensive I/O to decide if we should start it on the main thread first.
+**Action:** When kicking off background jobs like `memory_consolidation`, put all preconditions (like the initial file system checks) *inside* the `tokio::spawn(async move { ... })` block to ensure true non-blocking application startup.

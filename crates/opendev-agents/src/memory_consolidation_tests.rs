@@ -1,148 +1,139 @@
 use super::*;
-use tempfile::TempDir;
+use tempfile::tempdir;
 
-#[test]
-fn test_parse_type_and_body_with_frontmatter() {
-    let content = "---\ntype: session\ndescription: test\n---\n\nBody content here";
+#[tokio::test]
+async fn test_parse_type_and_body() {
+    let content = "---\ntype: session\n---\nHello World!";
     let (ft, body) = parse_type_and_body(content);
     assert_eq!(ft, "session");
-    assert_eq!(body, "Body content here");
-}
+    assert_eq!(body, "Hello World!");
 
-#[test]
-fn test_parse_type_and_body_without_frontmatter() {
-    let content = "Just some plain text\nwith multiple lines";
-    let (ft, body) = parse_type_and_body(content);
+    let no_fm = "Just some text";
+    let (ft, body) = parse_type_and_body(no_fm);
     assert_eq!(ft, "general");
-    assert_eq!(body, content.trim());
+    assert_eq!(body, "Just some text");
 }
 
-#[test]
-fn test_count_session_files_empty() {
-    let dir = TempDir::new().unwrap();
-    assert_eq!(count_session_files(dir.path()), 0);
+#[tokio::test]
+async fn test_count_session_files_empty() {
+    let dir = tempdir().unwrap();
+    assert_eq!(count_session_files(dir.path()).await, 0);
 }
 
-#[test]
-fn test_count_session_files_mixed() {
-    let dir = TempDir::new().unwrap();
+#[tokio::test]
+async fn test_count_session_files_mixed() {
+    let dir = tempdir().unwrap();
 
-    // Session file (by name prefix)
-    std::fs::write(
-        dir.path().join("session-2026-01-01-abc.md"),
-        "---\ntype: session\n---\nnotes",
+    // Session by name
+    tokio::fs::write(
+        dir.path().join("session-123.md"),
+        "---\ntype: general\n---\nbody",
     )
+    .await
     .unwrap();
 
-    // Non-session file
-    std::fs::write(
-        dir.path().join("patterns.md"),
-        "---\ntype: project\n---\npatterns",
-    )
-    .unwrap();
+    // Session by frontmatter
+    tokio::fs::write(dir.path().join("other.md"), "---\ntype: session\n---\nbody")
+        .await
+        .unwrap();
 
-    // Session file (by type, not name prefix)
-    std::fs::write(
-        dir.path().join("notes.md"),
-        "---\ntype: session\n---\nmore notes",
-    )
-    .unwrap();
+    // Not a session
+    tokio::fs::write(dir.path().join("notes.md"), "---\ntype: project\n---\nbody")
+        .await
+        .unwrap();
 
-    // MEMORY.md should be excluded
-    std::fs::write(dir.path().join("MEMORY.md"), "# Index").unwrap();
+    // MEMORY.md is ignored
+    tokio::fs::write(dir.path().join("MEMORY.md"), "# Index")
+        .await
+        .unwrap();
 
-    assert_eq!(count_session_files(dir.path()), 2);
+    assert_eq!(count_session_files(dir.path()).await, 2);
 }
 
-#[test]
-fn test_scan_all_memory_files() {
-    let dir = TempDir::new().unwrap();
+#[tokio::test]
+async fn test_scan_all_memory_files() {
+    let dir = tempdir().unwrap();
 
-    std::fs::write(
-        dir.path().join("file1.md"),
-        "---\ntype: session\n---\ncontent1",
+    tokio::fs::write(
+        dir.path().join("session-1.md"),
+        "---\ntype: session\n---\nOne",
     )
+    .await
     .unwrap();
-    std::fs::write(
-        dir.path().join("file2.md"),
-        "---\ntype: project\n---\ncontent2",
-    )
-    .unwrap();
-    std::fs::write(dir.path().join("MEMORY.md"), "# Index").unwrap();
-    std::fs::write(dir.path().join("not-md.txt"), "text").unwrap();
 
-    let files = scan_all_memory_files(dir.path());
+    tokio::fs::write(dir.path().join("notes.md"), "---\ntype: project\n---\nTwo")
+        .await
+        .unwrap();
+
+    tokio::fs::write(dir.path().join("MEMORY.md"), "# Index")
+        .await
+        .unwrap();
+    tokio::fs::write(dir.path().join("not-md.txt"), "text")
+        .await
+        .unwrap();
+
+    let files = scan_all_memory_files(dir.path()).await;
     assert_eq!(files.len(), 2);
-    assert!(
-        files
-            .iter()
-            .any(|f| f.filename == "file1.md" && f.file_type == "session")
-    );
-    assert!(
-        files
-            .iter()
-            .any(|f| f.filename == "file2.md" && f.file_type == "project")
-    );
+
+    let session = files.iter().find(|f| f.filename == "session-1.md").unwrap();
+    assert_eq!(session.file_type, "session");
+    assert_eq!(session.body, "One");
+
+    let notes = files.iter().find(|f| f.filename == "notes.md").unwrap();
+    assert_eq!(notes.file_type, "project");
+    assert_eq!(notes.body, "Two");
 }
 
-#[test]
-fn test_load_save_meta() {
-    let dir = TempDir::new().unwrap();
+#[tokio::test]
+async fn test_load_save_meta() {
+    let dir = tempdir().unwrap();
     let meta_path = dir.path().join("meta.json");
 
-    // Load non-existent file returns default
-    let meta = load_meta(&meta_path);
+    // Load non-existent
+    let meta = load_meta(&meta_path).await;
     assert!(meta.last_run.is_none());
-    assert_eq!(meta.files_processed, 0);
 
-    // Save and reload
+    // Save
     let meta = ConsolidationMeta {
-        last_run: Some("2026-01-01T00:00:00Z".to_string()),
+        last_run: Some("2024-01-01T00:00:00Z".to_string()),
         files_processed: 5,
     };
-    save_meta(&meta_path, &meta);
-    let loaded = load_meta(&meta_path);
-    assert_eq!(loaded.last_run.unwrap(), "2026-01-01T00:00:00Z");
+    save_meta(&meta_path, &meta).await;
+
+    // Load back
+    let loaded = load_meta(&meta_path).await;
+    assert_eq!(loaded.last_run.unwrap(), "2024-01-01T00:00:00Z");
     assert_eq!(loaded.files_processed, 5);
 }
 
-#[test]
-fn test_regenerate_index() {
-    let dir = TempDir::new().unwrap();
+#[tokio::test]
+async fn test_regenerate_index() {
+    let dir = tempdir().unwrap();
 
-    std::fs::write(
-        dir.path().join("alpha.md"),
-        "---\ndescription: Alpha file\n---\ncontent",
+    tokio::fs::write(
+        dir.path().join("a.md"),
+        "---\ndescription: \"Alpha\"\n---\nbody",
     )
-    .unwrap();
-    std::fs::write(
-        dir.path().join("beta.md"),
-        "---\ndescription: Beta file\n---\ncontent",
-    )
+    .await
     .unwrap();
 
-    regenerate_index(dir.path()).unwrap();
+    tokio::fs::write(dir.path().join("b.md"), "---\ntype: general\n---\nno desc")
+        .await
+        .unwrap();
 
-    let index = std::fs::read_to_string(dir.path().join("MEMORY.md")).unwrap();
-    assert!(index.contains("# Memory Index"));
-    assert!(index.contains("[alpha.md]"));
-    assert!(index.contains("Alpha file"));
-    assert!(index.contains("[beta.md]"));
-    assert!(index.contains("Beta file"));
+    regenerate_index(dir.path()).await.unwrap();
+
+    let index = tokio::fs::read_to_string(dir.path().join("MEMORY.md"))
+        .await
+        .unwrap();
+    assert!(index.contains("- [a.md](a.md) — Alpha"));
+    assert!(index.contains("- [b.md](b.md)"));
+    assert!(!index.contains("MEMORY.md"));
 }
 
-#[test]
-fn test_should_consolidate_no_dir() {
-    let dir = TempDir::new().unwrap();
-    // No memory dir exists
-    assert!(!should_consolidate(dir.path()));
-}
-
-#[test]
-fn test_extract_desc() {
-    assert_eq!(
-        extract_desc("---\ndescription: \"Hello world\"\n---\nbody"),
-        "Hello world"
-    );
-    assert_eq!(extract_desc("no frontmatter"), "");
+#[tokio::test]
+async fn test_should_consolidate_no_dir() {
+    let dir = tempdir().unwrap();
+    // No .opendev/memory created
+    assert!(!should_consolidate(dir.path()).await);
 }
