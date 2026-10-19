@@ -669,10 +669,13 @@ impl AgentRuntime {
         );
 
         // Check if memory consolidation should run (background, non-blocking)
+        // ⚡ Bolt Optimization: Moved should_consolidate into the spawned task
+        // to avoid performing synchronous file I/O on the main thread during startup.
+        // Expected Impact: Faster CLI startup time.
         {
             let wd = working_dir.to_path_buf();
-            if opendev_agents::memory_consolidation::should_consolidate(&wd) {
-                tokio::spawn(async move {
+            tokio::spawn(async move {
+                if opendev_agents::memory_consolidation::should_consolidate(&wd).await {
                     tracing::info!("Starting background memory consolidation");
                     match opendev_agents::memory_consolidation::consolidate(&wd).await {
                         Some(report) => tracing::info!(
@@ -684,10 +687,9 @@ impl AgentRuntime {
                             tracing::debug!("Memory consolidation skipped or had nothing to do")
                         }
                     }
-                });
-            }
+                }
+            });
         }
-
         Ok(Self {
             config,
             working_dir: working_dir.to_path_buf(),
